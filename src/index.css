@@ -1,0 +1,151 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #111827;
+  --color-accent: #0a84ff;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-white text-primary font-sans transition-colors duration-300 dark:bg-primary-950 dark:text-primary-100;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+  /* Titres : tracking resserré façon Apple */
+  h1, h2, h3 {
+    @apply tracking-tighter;
+  }
+  ::selection {
+    background: rgba(10, 132, 255, 0.18);
+  }
+  /* Barre de défilement discrète */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db transparent;
+  }
+}
+
+@layer components {
+  /* ---------- Boutons ---------- */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold
+           transition-all duration-300 ease-smooth
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  /* Bouton principal : NOIR, survol bleu (le bleu est tertiaire) */
+  .btn-primary {
+    @apply btn bg-primary text-white hover:bg-accent hover:-translate-y-0.5 active:translate-y-0;
+  }
+  /* Bouton d'achat / conversion : BLEU électrique (réservé) */
+  .btn-buy {
+    @apply btn bg-accent text-white shadow-glow hover:bg-accent-hover hover:-translate-y-0.5 active:translate-y-0;
+  }
+  .btn-dark {
+    @apply btn bg-primary text-white hover:bg-primary-800 hover:-translate-y-0.5 active:translate-y-0;
+  }
+  .btn-light {
+    @apply btn bg-white text-primary shadow-card hover:-translate-y-0.5 active:translate-y-0;
+  }
+  /* Bouton secondaire : blanc à bordure noire, inversion au survol */
+  .btn-outline {
+    @apply btn border border-primary bg-white text-primary hover:bg-primary hover:text-white;
+  }
+  .btn-ghost {
+    @apply btn text-primary hover:bg-primary-100;
+  }
+
+  /* ---------- Surfaces ---------- */
+  .card {
+    @apply rounded-2xl bg-white shadow-card ring-1 ring-line/60 transition-all duration-300 ease-smooth dark:bg-primary-800 dark:ring-white/10;
+  }
+  .card-hover {
+    @apply hover:-translate-y-1 hover:shadow-card-hover;
+  }
+  .glass {
+    @apply bg-white/70 backdrop-blur-xl backdrop-saturate-150;
+  }
+
+  /* ---------- Formulaires ---------- */
+  .input {
+    @apply w-full rounded-xl border border-line bg-white px-4 py-2.5 text-sm text-primary
+           outline-none transition duration-200 placeholder:text-muted/70
+           focus:border-accent focus:ring-4 focus:ring-accent/10
+           dark:border-white/15 dark:bg-primary-800 dark:text-white dark:placeholder:text-white/40;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-primary-700;
+  }
+
+  /* ---------- Layout ---------- */
+  .container-page {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+  .section {
+    @apply py-16 sm:py-20;
+  }
+
+  /* ---------- Divers ---------- */
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1.5
+           text-xs font-medium text-muted transition hover:border-primary hover:text-primary
+           dark:border-white/15 dark:bg-primary-800 dark:text-white/70 dark:hover:border-white/40 dark:hover:text-white;
+  }
+  .chip-active {
+    @apply border-accent bg-accent-light text-accent;
+  }
+  .eyebrow {
+    @apply text-xs font-bold uppercase tracking-[0.2em] text-accent;
+  }
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary via-primary-700 to-accent bg-clip-text text-transparent;
+  }
+  /* Squelette de chargement */
+  .skeleton {
+    @apply relative overflow-hidden bg-primary-100 dark:bg-primary-800;
+  }
+  .skeleton::after {
+    content: '';
+    @apply absolute inset-0 -translate-x-full;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+    animation: shimmer 1.5s infinite;
+  }
+}
+
+@layer utilities {
+  .line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Respecte la préférence de réduction de mouvement */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
