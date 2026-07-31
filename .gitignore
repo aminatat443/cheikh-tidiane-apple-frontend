@@ -9,3 +9,7 @@ dist-ssr/
 npm-debug.log*
 .vite/
 coverage/
+
+# Docs internes (non versionnees)
+CLAUDE.md
+STATUT.md
