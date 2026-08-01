@@ -3,8 +3,12 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { selectCartTotal, clearCart } from '@/store/cartSlice';
 import { orderService } from '@/services/auth.service';
+import { paymentService } from '@/services/payment.service';
 import { PAYMENT_METHODS } from '@/constants';
 import { formatPrice } from '@/utils/format';
+
+// Moyens réglés en ligne via la passerelle (redirection).
+const GATEWAY_METHODS = ['wave', 'orange_money', 'card'];
 
 export default function Checkout() {
   const dispatch = useDispatch();
@@ -24,12 +28,19 @@ export default function Checkout() {
     setError('');
     try {
       // NB : en production, le panier serveur fait foi ; ici on envoie l'info de livraison.
-      await orderService.create({ paymentMethod: method, shipping });
+      const resp = await orderService.create({ paymentMethod: method, shipping });
+      const order = resp.data;
       dispatch(clearCart());
+
+      // Paiement en ligne → redirection vers la passerelle (ou le simulateur en dev).
+      if (GATEWAY_METHODS.includes(method)) {
+        const pay = await paymentService.initiate({ purpose: 'order', referenceId: order.id, method });
+        window.location.href = pay.data.checkoutUrl;
+        return;
+      }
       navigate('/orders');
     } catch (err) {
       setError(err.response?.data?.message || 'Erreur lors de la commande');
-    } finally {
       setLoading(false);
     }
   };

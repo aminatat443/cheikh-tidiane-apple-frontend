@@ -6,12 +6,15 @@ import {
   FiSearch, FiMoon, FiSun, FiChevronDown,
 } from 'react-icons/fi';
 import SearchBar from '@/components/common/SearchBar';
+import NotificationBell from '@/components/common/NotificationBell';
+import { useAuthModal } from '@/context/AuthModalContext';
 import { useTheme } from '@/hooks/useTheme';
 import { selectCartCount } from '@/store/cartSlice';
 import { selectFavoriteCount } from '@/store/favoriteSlice';
 import { logout } from '@/store/authSlice';
 import { CATEGORIES } from '@/constants';
 import { cn } from '@/utils/format';
+import { isAdmin } from '@/utils/roles';
 
 const navLinks = [
   { label: 'Accueil', to: '/' },
@@ -32,6 +35,7 @@ export default function Navbar() {
   const cartCount = useSelector(selectCartCount);
   const favCount = useSelector(selectFavoriteCount);
   const { isAuthenticated, user } = useSelector((s) => s.auth);
+  const { openAuth } = useAuthModal();
   const location = useLocation();
 
   const isLinkActive = (to) => {
@@ -118,6 +122,7 @@ export default function Navbar() {
             </button>
             <CountIcon to="/favorites" icon={FiHeart} count={favCount} label="Favoris" />
             <CountIcon to="/cart" icon={FiShoppingBag} count={cartCount} label="Panier" />
+            {isAuthenticated && <NotificationBell variant="onDark" />}
 
             {isAuthenticated ? (
               <div className="group relative ml-1">
@@ -136,8 +141,10 @@ export default function Navbar() {
                   <div className="my-1 h-px bg-line dark:bg-white/10" />
                   <Link to="/profile" className="block rounded-lg px-3 py-2 text-sm text-primary-700 hover:bg-surface dark:text-white/80 dark:hover:bg-white/5">Mon profil</Link>
                   <Link to="/orders" className="block rounded-lg px-3 py-2 text-sm text-primary-700 hover:bg-surface dark:text-white/80 dark:hover:bg-white/5">Mes commandes</Link>
+                  <Link to="/returns" className="block rounded-lg px-3 py-2 text-sm text-primary-700 hover:bg-surface dark:text-white/80 dark:hover:bg-white/5">Mes retours</Link>
+                  <Link to="/mes-financements" className="block rounded-lg px-3 py-2 text-sm text-primary-700 hover:bg-surface dark:text-white/80 dark:hover:bg-white/5">Mes Lebalma</Link>
                   <Link to="/favorites" className="block rounded-lg px-3 py-2 text-sm text-primary-700 hover:bg-surface dark:text-white/80 dark:hover:bg-white/5">Mes favoris</Link>
-                  {user?.role === 'admin' && (
+                  {isAdmin(user) && (
                     <Link to="/admin" className="block rounded-lg px-3 py-2 text-sm font-medium text-accent hover:bg-accent-light dark:hover:bg-white/5">Administration</Link>
                   )}
                   <div className="my-1 h-px bg-line dark:bg-white/10" />
@@ -150,9 +157,9 @@ export default function Navbar() {
                 </div>
               </div>
             ) : (
-              <Link to="/login" className="btn-light ml-1 hidden h-10 px-5 py-0 text-[13px] sm:inline-flex">
+              <button onClick={() => openAuth('login')} className="btn-light ml-1 hidden h-10 px-5 py-0 text-[13px] sm:inline-flex">
                 Se connecter
-              </Link>
+              </button>
             )}
 
             <button
@@ -185,9 +192,9 @@ export default function Navbar() {
                 </Link>
               ))}
               {!isAuthenticated && (
-                <Link to="/login" onClick={() => setMobileOpen(false)} className="btn-light mt-3 w-full">
+                <button onClick={() => { setMobileOpen(false); openAuth('login'); }} className="btn-light mt-3 w-full">
                   Se connecter
-                </Link>
+                </button>
               )}
             </div>
           </div>

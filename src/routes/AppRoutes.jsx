@@ -1,5 +1,6 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
+import AdminLayout from '@/components/layout/AdminLayout';
 import ProtectedRoute from './ProtectedRoute';
 
 import Home from '@/pages/Home';
@@ -11,16 +12,32 @@ import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import Profile from '@/pages/Profile';
 import Orders from '@/pages/Orders';
+import Returns from '@/pages/Returns';
+import MesFinancements from '@/pages/MesFinancements';
 import Favorites from '@/pages/Favorites';
 import Search from '@/pages/Search';
 import Contact from '@/pages/Contact';
 import Lebalma from '@/pages/Lebalma';
-import Admin from '@/pages/Admin';
+import PaymentSimulator from '@/pages/PaymentSimulator';
+import PaymentReturn from '@/pages/PaymentReturn';
 import NotFound from '@/pages/NotFound';
+
+// Back-office
+import AdminDashboard from '@/pages/Admin/Dashboard';
+import AdminProducts from '@/pages/Admin/Products';
+import AdminOrders from '@/pages/Admin/Orders';
+import AdminLebalma from '@/pages/Admin/Lebalma';
+import AdminClients from '@/pages/Admin/Clients';
+import AdminInvoices from '@/pages/Admin/Invoices';
+import AdminInvoice from '@/pages/Admin/Invoice';
+import AdminReturns from '@/pages/Admin/Returns';
+import AdminSettings from '@/pages/Admin/Settings';
+import AdminAdmins from '@/pages/Admin/Admins';
 
 export default function AppRoutes() {
   return (
     <Routes>
+      {/* Boutique */}
       <Route element={<Layout />}>
         {/* Public */}
         <Route index element={<Home />} />
@@ -38,15 +55,31 @@ export default function AppRoutes() {
           <Route path="checkout" element={<Checkout />} />
           <Route path="profile" element={<Profile />} />
           <Route path="orders" element={<Orders />} />
+          <Route path="returns" element={<Returns />} />
+          <Route path="mes-financements" element={<MesFinancements />} />
           <Route path="favorites" element={<Favorites />} />
-        </Route>
-
-        {/* Admin */}
-        <Route element={<ProtectedRoute adminOnly />}>
-          <Route path="admin/*" element={<Admin />} />
+          <Route path="paiement/simulateur/:id" element={<PaymentSimulator />} />
+          <Route path="paiement/retour" element={<PaymentReturn />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />
+      </Route>
+
+      {/* Back-office (layout dédié, réservé admin) */}
+      <Route element={<ProtectedRoute adminOnly />}>
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="products" element={<AdminProducts />} />
+          <Route path="orders" element={<AdminOrders />} />
+          <Route path="lebalma" element={<AdminLebalma />} />
+          <Route path="clients" element={<AdminClients />} />
+          <Route path="invoices" element={<AdminInvoices />} />
+          <Route path="invoices/:id" element={<AdminInvoice />} />
+          <Route path="returns" element={<AdminReturns />} />
+          <Route path="settings" element={<AdminSettings />} />
+          <Route path="admins" element={<AdminAdmins />} />
+          <Route path="*" element={<Navigate to="/admin" replace />} />
+        </Route>
       </Route>
     </Routes>
   );

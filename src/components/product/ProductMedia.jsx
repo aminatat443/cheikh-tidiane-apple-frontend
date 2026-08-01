@@ -1,4 +1,5 @@
 import DeviceIllustration from './DeviceIllustration';
+import { productPlaceholder } from '@/utils/media';
 import { cn } from '@/utils/format';
 
 /**
@@ -13,7 +14,8 @@ const GRADIENTS = [
 ];
 
 export default function ProductMedia({ product, className, imgClassName }) {
-  const image = product?.images?.[0];
+  // Vraie photo si disponible, sinon placeholder (iPhone rouge pour les iPhones).
+  const image = product?.images?.[0] || productPlaceholder(product);
   const gradient = GRADIENTS[(product?.id || 0) % GRADIENTS.length];
 
   return (

@@ -1,41 +1,60 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  FiHeart, FiShoppingBag, FiChevronRight, FiCheck, FiTruck, FiShield,
+  FiHeart, FiShoppingBag, FiChevronRight, FiCheck, FiTruck, FiShield, FiLock, FiPhone, FiBell,
 } from 'react-icons/fi';
 import { FaWhatsapp } from 'react-icons/fa';
 import Loader from '@/components/ui/Loader';
 import Rating from '@/components/ui/Rating';
 import ProductMedia from '@/components/product/ProductMedia';
+import ProductCard from '@/components/product/ProductCard';
 import { productService } from '@/services/product.service';
 import { addItem } from '@/store/cartSlice';
 import { toggleFavorite } from '@/store/favoriteSlice';
 import { formatPrice, computeLebalma, cn } from '@/utils/format';
+import { productGallery } from '@/utils/media';
 import { WHATSAPP_NUMBER } from '@/constants';
+
+const TRUST = [
+  { icon: FiTruck, t: 'Livraison rapide', s: 'Dakar & régions' },
+  { icon: FiShield, t: 'Produit garanti', s: 'Garantie officielle' },
+  { icon: FiLock, t: 'Paiement sécurisé', s: 'Wave · OM · carte' },
+  { icon: FiPhone, t: 'Support client', s: '7j/7 par WhatsApp' },
+];
 
 export default function ProductDetails() {
   const { id } = useParams();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated } = useSelector((s) => s.auth);
   const [color, setColor] = useState(null);
   const [storage, setStorage] = useState(null);
   const [activeImg, setActiveImg] = useState(0);
   const [condition, setCondition] = useState('reconditionne');
+  const [alertState, setAlertState] = useState('idle'); // idle | sending | done | error
 
   const { data, isLoading } = useQuery({
     queryKey: ['product', id],
     queryFn: () => productService.getOne(id),
   });
+  const product = data?.data?.product;
+
+  const { data: relatedData } = useQuery({
+    queryKey: ['related', product?.category?.slug, id],
+    queryFn: () => productService.list({ category: product.category?.slug, limit: 8 }),
+    enabled: !!product?.category?.slug,
+  });
+
   const isFav = useSelector((s) => s.favorites.items.some((p) => p.id === Number(id)));
 
   if (isLoading) return <Loader />;
-  const product = data?.data?.product;
   if (!product) return <p className="container-page py-24 text-center">Produit introuvable.</p>;
 
-  const images = Array.isArray(product.images) ? product.images.slice(0, 4) : [];
+  const images = productGallery(product, 4);
 
-  // Variantes de capacité : [{ storage, price }]. Repli sur storages/prix de base.
   const variants =
     Array.isArray(product.variants) && product.variants.length
       ? product.variants
@@ -59,44 +78,63 @@ export default function ProductDetails() {
       : 0;
   const lebalma = computeLebalma(activePrice, product);
   const specs = product.specs && typeof product.specs === 'object' ? Object.entries(product.specs) : [];
+  const inStock = product.stock == null || product.stock > 0;
+  const related = (relatedData?.data || []).filter((p) => p.id !== Number(id)).slice(0, 4);
+
+  const addToCart = () =>
+    dispatch(addItem({ product, color: activeColor, storage: activeStorage, condition: conditionLabel, price: activePrice }));
+
+  async function notifyMe() {
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: location.pathname } });
+      return;
+    }
+    setAlertState('sending');
+    try {
+      await productService.subscribeStockAlert(id);
+      setAlertState('done');
+    } catch {
+      setAlertState('error');
+    }
+  }
 
   return (
-    <div className="container-page py-6 sm:py-8">
+    <div className="container-page py-6 pb-28 sm:py-8 lg:pb-8">
       {/* Fil d'Ariane */}
       <nav className="flex items-center gap-1.5 text-xs text-muted">
-        <Link to="/" className="hover:text-primary">Accueil</Link>
+        <Link to="/" className="transition-colors hover:text-primary dark:hover:text-white">Accueil</Link>
         <FiChevronRight size={12} />
-        <Link to={`/products?category=${product.category?.slug || ''}`} className="hover:text-primary">
+        <Link to={`/products?category=${product.category?.slug || ''}`} className="transition-colors hover:text-primary dark:hover:text-white">
           {product.category?.name || 'Produits'}
         </Link>
         <FiChevronRight size={12} />
         <span className="truncate text-primary dark:text-white">{product.name}</span>
       </nav>
 
-      <div className="mt-6 grid gap-10 lg:grid-cols-2">
-        {/* Galerie (jusqu'à 4 photos, sticky) */}
+      <div className="mt-6 grid animate-fade-in gap-10 lg:grid-cols-2">
+        {/* Galerie (sticky) */}
         <div className="lg:sticky lg:top-24 lg:self-start">
-          <div className="relative">
+          <div className="group relative">
             {images.length > 0 ? (
-              <div className="aspect-square overflow-hidden rounded-3xl bg-surface ring-1 ring-line/60 dark:bg-primary-800 dark:ring-white/10">
+              <div className="aspect-square overflow-hidden rounded-3xl bg-surface shadow-card ring-1 ring-line/60 dark:bg-primary-800 dark:ring-white/10">
                 <img
                   src={images[activeImg] || images[0]}
                   alt={product.name}
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-cover transition-transform duration-700 ease-smooth group-hover:scale-105"
                 />
               </div>
             ) : (
               <ProductMedia
                 product={product}
-                className="aspect-square rounded-3xl bg-surface ring-1 ring-line/60 dark:bg-primary-800 dark:ring-white/10"
+                className="aspect-square rounded-3xl bg-surface shadow-card ring-1 ring-line/60 dark:bg-primary-800 dark:ring-white/10"
               />
             )}
             <div className="absolute left-4 top-4 flex flex-col gap-1.5">
               {product.isNew && (
-                <span className="rounded-full bg-primary px-2.5 py-1 text-[11px] font-semibold text-white">Nouveau</span>
+                <span className="rounded-full bg-primary/90 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur">Nouveau</span>
               )}
               {discount > 0 && (
-                <span className="rounded-full bg-promo px-2.5 py-1 text-[11px] font-semibold text-white">−{discount}%</span>
+                <span className="rounded-full bg-danger px-3 py-1 text-[11px] font-bold text-white shadow-soft">−{discount}%</span>
               )}
             </div>
           </div>
@@ -109,8 +147,8 @@ export default function ProductDetails() {
                   key={i}
                   onClick={() => setActiveImg(i)}
                   className={cn(
-                    'aspect-square overflow-hidden rounded-xl bg-surface ring-1 transition dark:bg-primary-800',
-                    activeImg === i ? 'ring-2 ring-accent' : 'ring-line hover:ring-primary dark:ring-white/10'
+                    'aspect-square overflow-hidden rounded-2xl bg-surface ring-1 transition dark:bg-primary-800',
+                    activeImg === i ? 'ring-2 ring-accent ring-offset-2 dark:ring-offset-primary-950' : 'ring-line hover:ring-primary dark:ring-white/10'
                   )}
                   aria-label={`Photo ${i + 1}`}
                 >
@@ -124,17 +162,29 @@ export default function ProductDetails() {
         {/* Infos */}
         <div>
           {product.category?.name && (
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted">{product.category.name}</p>
+            <p className="eyebrow">{product.category.name}</p>
           )}
-          <h1 className="mt-1 text-3xl font-extrabold tracking-tighter dark:text-white sm:text-4xl">
+          <h1 className="mt-1.5 text-3xl font-extrabold tracking-tighter dark:text-white sm:text-4xl">
             {product.name}
           </h1>
-          {product.ratingCount > 0 && (
-            <div className="mt-2"><Rating value={product.ratingAvg} count={product.ratingCount} /></div>
-          )}
 
-          <div className="mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-2">
-            <span className="text-3xl font-bold tracking-tight dark:text-white">{formatPrice(activePrice)}</span>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            {product.ratingCount > 0 && <Rating value={product.ratingAvg} count={product.ratingCount} />}
+            {inStock ? (
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-success">
+                <span className="h-1.5 w-1.5 rounded-full bg-success" />
+                {product.stock != null && product.stock <= 5 ? `Plus que ${product.stock} en stock` : 'En stock'}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-danger">
+                <span className="h-1.5 w-1.5 rounded-full bg-danger" /> Rupture de stock
+              </span>
+            )}
+          </div>
+
+          {/* Prix */}
+          <div className="mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <span className="text-3xl font-extrabold tracking-tight dark:text-white">{formatPrice(activePrice)}</span>
             {discount > 0 && <span className="text-muted line-through">{formatPrice(product.oldPrice)}</span>}
             {product.lebalmaEligible && (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-light px-3 py-1 text-xs font-semibold text-accent">
@@ -142,6 +192,11 @@ export default function ProductDetails() {
               </span>
             )}
           </div>
+          {discount > 0 && (
+            <p className="mt-1 text-sm font-semibold text-success">
+              Vous économisez {formatPrice(product.oldPrice - activePrice)}
+            </p>
+          )}
 
           {product.description && (
             <p className="mt-4 max-w-prose text-sm leading-relaxed text-muted">{product.description}</p>
@@ -189,9 +244,7 @@ export default function ProductDetails() {
                       title={name}
                       aria-label={name}
                     >
-                      {activeColor === name && (
-                        <FiCheck className="text-white mix-blend-difference" size={14} />
-                      )}
+                      {activeColor === name && <FiCheck className="text-white mix-blend-difference" size={14} />}
                     </button>
                   );
                 })}
@@ -199,7 +252,7 @@ export default function ProductDetails() {
             </div>
           )}
 
-          {/* Capacités (prix par capacité) */}
+          {/* Capacités */}
           {variants.length > 0 && (
             <div className="mt-5">
               <p className="mb-2.5 text-sm font-semibold dark:text-white">Capacité</p>
@@ -227,11 +280,8 @@ export default function ProductDetails() {
 
           {/* Actions */}
           <div className="mt-8 flex gap-3">
-            <button
-              onClick={() => dispatch(addItem({ product, color: activeColor, storage: activeStorage, condition: conditionLabel, price: activePrice }))}
-              className="btn-dark flex-1"
-            >
-              <FiShoppingBag /> Ajouter au panier
+            <button onClick={addToCart} disabled={!inStock} className="btn-buy flex-1">
+              <FiShoppingBag /> {inStock ? 'Ajouter au panier' : 'Indisponible'}
             </button>
             <button
               onClick={() => dispatch(toggleFavorite(product))}
@@ -242,25 +292,52 @@ export default function ProductDetails() {
             </button>
           </div>
 
-          {/* Détails du financement Lebalma */}
+          {/* Alerte retour en stock (rupture) */}
+          {!inStock && (
+            <div className="mt-4">
+              {alertState === 'done' ? (
+                <p className="inline-flex items-center gap-2 rounded-xl bg-success/10 px-4 py-3 text-sm font-semibold text-success">
+                  <FiCheck size={16} /> Parfait ! Vous serez averti dès le retour en stock.
+                </p>
+              ) : (
+                <>
+                  <button
+                    onClick={notifyMe}
+                    disabled={alertState === 'sending'}
+                    className="btn-outline w-full sm:w-auto"
+                  >
+                    <FiBell size={16} /> {alertState === 'sending' ? 'Enregistrement…' : 'Prévenez-moi quand c\'est dispo'}
+                  </button>
+                  {alertState === 'error' && (
+                    <p className="mt-2 text-sm text-danger">Une erreur est survenue. Réessayez.</p>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Financement Lebalma */}
           {lebalma && (
-            <div className="mt-8 overflow-hidden rounded-2xl border border-accent/25 bg-accent-light p-5 dark:border-white/10 dark:bg-primary-800">
+            <div className="mt-8 overflow-hidden rounded-3xl border border-accent/20 bg-gradient-to-br from-accent-light to-white p-5 shadow-card dark:border-white/10 dark:from-primary-800 dark:to-primary-900">
               <div className="flex items-center justify-between">
-                <h3 className="font-bold text-accent">Payez avec Lebalma</h3>
-                <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-accent dark:bg-white/10">
+                <h3 className="flex items-center gap-2 font-bold text-accent">
+                  <span className="grid h-7 w-7 place-items-center rounded-lg bg-accent text-white shadow-glow">₣</span>
+                  Payez avec Lebalma
+                </h3>
+                <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-accent shadow-soft dark:bg-white/10">
                   {lebalma.months} mois
                 </span>
               </div>
 
-              <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3">
-                <div>
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <div className="rounded-2xl bg-white/70 p-3 dark:bg-white/5">
                   <p className="text-xs text-muted">Acompte ({lebalma.downPaymentPercent}%)</p>
-                  <p className="text-lg font-bold text-primary dark:text-white">{formatPrice(lebalma.downPaymentAmount)}</p>
+                  <p className="text-lg font-extrabold text-primary dark:text-white">{formatPrice(lebalma.downPaymentAmount)}</p>
                   <p className="text-[11px] text-muted">à payer maintenant</p>
                 </div>
-                <div>
+                <div className="rounded-2xl bg-white/70 p-3 dark:bg-white/5">
                   <p className="text-xs text-muted">Mensualité</p>
-                  <p className="text-lg font-bold text-accent">{formatPrice(lebalma.installmentAmount)}</p>
+                  <p className="text-lg font-extrabold text-accent">{formatPrice(lebalma.installmentAmount)}</p>
                   <p className="text-[11px] text-muted">× {lebalma.months} mois</p>
                 </div>
               </div>
@@ -272,7 +349,7 @@ export default function ProductDetails() {
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-3 text-sm font-semibold text-white shadow-soft transition hover:bg-[#1ebe5b] hover:-translate-y-0.5"
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-3 text-sm font-semibold text-white shadow-soft transition hover:-translate-y-0.5 hover:bg-[#1ebe5b]"
               >
                 <FaWhatsapp size={18} /> Souscrire au Lebalma
               </a>
@@ -280,14 +357,12 @@ export default function ProductDetails() {
           )}
 
           {/* Réassurance */}
-          <div className="mt-6 grid grid-cols-2 gap-3 text-center text-xs">
-            {[
-              { icon: FiTruck, t: 'Livraison rapide' },
-              { icon: FiShield, t: 'Produit garanti' },
-            ].map(({ icon: Icon, t }) => (
-              <div key={t} className="rounded-xl bg-surface px-2 py-3 dark:bg-primary-800">
-                <Icon className="mx-auto text-accent" size={18} />
-                <p className="mt-1.5 font-medium text-primary-700 dark:text-white/80">{t}</p>
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {TRUST.map(({ icon: Icon, t, s }) => (
+              <div key={t} className="rounded-2xl bg-surface px-3 py-3.5 text-center dark:bg-primary-800">
+                <Icon className="mx-auto text-accent" size={19} />
+                <p className="mt-1.5 text-xs font-semibold text-primary dark:text-white">{t}</p>
+                <p className="text-[10px] text-muted">{s}</p>
               </div>
             ))}
           </div>
@@ -312,6 +387,39 @@ export default function ProductDetails() {
               </dl>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Vous aimerez aussi */}
+      {related.length > 0 && (
+        <section className="mt-16">
+          <div className="mb-6 flex items-end justify-between">
+            <div>
+              <p className="eyebrow">Sélection</p>
+              <h2 className="mt-1 text-2xl font-extrabold tracking-tight dark:text-white">Vous aimerez aussi</h2>
+            </div>
+            <Link to={`/products?category=${product.category?.slug || ''}`} className="hidden text-sm font-semibold text-accent hover:underline sm:inline">
+              Voir tout
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {related.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Barre d'achat fixe (mobile) */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white/90 px-4 py-3 backdrop-blur-xl dark:border-white/10 dark:bg-primary-900/90 lg:hidden">
+        <div className="container-page flex items-center gap-3 px-0">
+          <div className="min-w-0">
+            <p className="truncate text-xs text-muted">{product.name}</p>
+            <p className="text-lg font-extrabold tracking-tight dark:text-white">{formatPrice(activePrice)}</p>
+          </div>
+          <button onClick={addToCart} disabled={!inStock} className="btn-buy ml-auto shrink-0">
+            <FiShoppingBag /> {inStock ? 'Ajouter' : 'Indispo.'}
+          </button>
         </div>
       </div>
     </div>

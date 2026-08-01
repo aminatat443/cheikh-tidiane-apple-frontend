@@ -7,6 +7,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App.jsx';
 import { store } from './store/index.js';
 import { SocketProvider } from './context/SocketContext.jsx';
+import { NotificationProvider } from './context/NotificationProvider.jsx';
+import { AuthModalProvider } from './context/AuthModalContext.jsx';
 import './index.css';
 
 const queryClient = new QueryClient({
@@ -19,7 +21,11 @@ createRoot(document.getElementById('root')).render(
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <SocketProvider>
-            <App />
+            <NotificationProvider>
+              <AuthModalProvider>
+                <App />
+              </AuthModalProvider>
+            </NotificationProvider>
           </SocketProvider>
         </BrowserRouter>
       </QueryClientProvider>

@@ -46,3 +46,17 @@ export function formatDate(date) {
     year: 'numeric',
   });
 }
+
+/** Temps relatif en français (ex : "il y a 5 min", "à l'instant"). */
+export function timeAgo(date) {
+  if (!date) return '';
+  const s = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+  if (s < 60) return "à l'instant";
+  const m = Math.floor(s / 60);
+  if (m < 60) return `il y a ${m} min`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `il y a ${h} h`;
+  const d = Math.floor(h / 24);
+  if (d < 7) return `il y a ${d} j`;
+  return formatDate(date);
+}

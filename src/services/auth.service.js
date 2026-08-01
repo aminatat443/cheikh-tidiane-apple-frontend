@@ -3,7 +3,16 @@ import api from './api.js';
 export const authService = {
   login: (payload) => api.post('/auth/login', payload).then((r) => r.data),
   register: (payload) => api.post('/auth/register', payload).then((r) => r.data),
+  google: (credential) => api.post('/auth/google', { credential }).then((r) => r.data),
   me: () => api.get('/auth/me').then((r) => r.data),
+  // Double authentification (2FA / TOTP)
+  verify2fa: (payload) => api.post('/auth/2fa/verify', payload).then((r) => r.data),
+  // Enrôlement 2FA à la connexion (jeton temporaire) — admins
+  enroll2fa: (tempToken) => api.post('/auth/2fa/enroll', { tempToken }).then((r) => r.data),
+  enrollVerify2fa: (payload) => api.post('/auth/2fa/enroll/verify', payload).then((r) => r.data),
+  setup2fa: () => api.post('/auth/2fa/setup').then((r) => r.data),
+  enable2fa: (code) => api.post('/auth/2fa/enable', { code }).then((r) => r.data),
+  disable2fa: (code) => api.post('/auth/2fa/disable', { code }).then((r) => r.data),
 };
 
 export const cartService = {

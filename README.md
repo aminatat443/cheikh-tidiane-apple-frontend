@@ -52,5 +52,26 @@ src/
 - [`STATUT.md`](./STATUT.md) — avancement
 
 ## Fonctionnalités clés
-Recherche & filtres en temps réel · Hero slider · Favoris & panier persistants · Auth JWT · Checkout multi-paiement (Wave, Orange Money, carte, Lebalma) · Simulateur Lebalma · Espace admin.
-"# cheikh-tidiane-apple-frontend"  
+Recherche & filtres en temps réel · Hero slider · Favoris & panier persistants · Auth JWT (+ Google & 2FA) · Checkout multi-paiement (Wave, Orange Money, carte, Lebalma) · Simulateur Lebalma · Espace admin.
+
+## Comptes de test
+
+> Créés par les scripts de seed backend : `npm run db:seed` (réinitialise la base + super-admin) puis `npm run db:seed:demo` (additif : admin, clients, commandes et contrats de démo). Les mots de passe sont en clair ci-dessous mais hachés en base (Bcrypt).
+
+### Administration — `/admin`
+| Rôle | Email | Mot de passe | Accès |
+|------|-------|--------------|-------|
+| **Super-admin** (Cheikh Tidiane) | `admin@cheikhtidiane.com` | `admin123` | Tout, dont la **gestion des administrateurs** et la 2FA |
+| **Admin** | `manager@cheikhtidiane.com` | `admin123` | Back-office complet **sauf** la gestion des admins |
+
+### Clients (boutique) — mot de passe commun : `client123`
+| Nom | Email | KYC | Idéal pour tester |
+|-----|-------|-----|-------------------|
+| Awa Ndiaye | `awa@example.com` | ✅ | Commandes + **contrat Lebalma actif** (échéances à payer) |
+| Modou Fall | `modou@example.com` | ✅ | Commandes + contrat **en attente** |
+| Ibrahima Bâ | `ibrahima@example.com` | ✅ | Contrat **terminé** ; peut souscrire à Lebalma |
+| Aïssatou Diop | `aissatou@example.com` | ✅ | Contrat **en défaut** |
+| Fatou Sarr | `fatou@example.com` | ❌ | Client **sans KYC** (souscription Lebalma bloquée) |
+
+> 🔐 Identifiants de **développement uniquement** — à changer impérativement avant toute mise en production.
+> 💳 Le paiement fonctionne en **mode simulation** tant que les clés Wave / Orange Money ne sont pas configurées : le checkout redirige vers un simulateur (`/paiement/simulateur/:id`) qui confirme ou échoue le paiement.

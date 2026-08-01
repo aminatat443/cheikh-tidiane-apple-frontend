@@ -1,16 +1,47 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { authService } from '@/services/auth.service';
 
+const twoFactorPayload = (d) => ({
+  twoFactorRequired: !!d.twoFactorRequired,
+  twoFactorSetupRequired: !!d.twoFactorSetupRequired,
+  tempToken: d.tempToken,
+});
+
 export const login = createAsyncThunk('auth/login', async (payload) => {
   const res = await authService.login(payload);
+  // 2FA (vérification ou enrôlement obligatoire) : pas de jeton final.
+  if (res.data?.twoFactorRequired || res.data?.twoFactorSetupRequired) {
+    return twoFactorPayload(res.data);
+  }
   localStorage.setItem('token', res.data.token);
-  return res.data.user;
+  return { user: res.data.user };
+});
+
+export const enrollVerifyTwoFactor = createAsyncThunk('auth/enrollVerify2fa', async (payload) => {
+  const res = await authService.enrollVerify2fa(payload); // { tempToken, code }
+  localStorage.setItem('token', res.data.token);
+  return { user: res.data.user };
 });
 
 export const register = createAsyncThunk('auth/register', async (payload) => {
   const res = await authService.register(payload);
   localStorage.setItem('token', res.data.token);
-  return res.data.user;
+  return { user: res.data.user };
+});
+
+export const googleLogin = createAsyncThunk('auth/google', async (credential) => {
+  const res = await authService.google(credential);
+  if (res.data?.twoFactorRequired || res.data?.twoFactorSetupRequired) {
+    return twoFactorPayload(res.data);
+  }
+  localStorage.setItem('token', res.data.token);
+  return { user: res.data.user };
+});
+
+export const verifyTwoFactor = createAsyncThunk('auth/verify2fa', async (payload) => {
+  const res = await authService.verify2fa(payload); // { tempToken, code }
+  localStorage.setItem('token', res.data.token);
+  return { user: res.data.user };
 });
 
 export const fetchMe = createAsyncThunk('auth/me', async () => {
@@ -25,26 +56,66 @@ const authSlice = createSlice({
     isAuthenticated: false,
     status: 'idle',
     error: null,
+    twoFactor: { required: false, tempToken: null },
   },
   reducers: {
     logout(state) {
       localStorage.removeItem('token');
       state.user = null;
       state.isAuthenticated = false;
+      state.twoFactor = { required: false, tempToken: null };
+    },
+    clearTwoFactor(state) {
+      state.twoFactor = { required: false, tempToken: null };
     },
   },
   extraReducers: (builder) => {
     builder
+      .addCase(fetchMe.pending, (state) => {
+        state.status = 'loading';
+      })
       .addCase(fetchMe.fulfilled, (state, action) => {
         state.user = action.payload;
         state.isAuthenticated = true;
       })
       .addCase(fetchMe.rejected, (state) => {
+        localStorage.removeItem('token');
         state.user = null;
         state.isAuthenticated = false;
+        state.status = 'failed';
       });
 
-    [login, register].forEach((thunk) => {
+    // Connexion (mot de passe ou Google, avec branche 2FA)
+    const onAuthFulfilled = (state, action) => {
+      if (action.payload.twoFactorRequired || action.payload.twoFactorSetupRequired) {
+        state.status = 'twofa';
+        state.twoFactor = {
+          required: !!action.payload.twoFactorRequired,
+          setup: !!action.payload.twoFactorSetupRequired,
+          tempToken: action.payload.tempToken,
+        };
+      } else {
+        state.status = 'succeeded';
+        state.user = action.payload.user;
+        state.isAuthenticated = true;
+        state.twoFactor = { required: false, tempToken: null };
+      }
+    };
+    [login, googleLogin].forEach((thunk) => {
+      builder
+        .addCase(thunk.pending, (state) => {
+          state.status = 'loading';
+          state.error = null;
+        })
+        .addCase(thunk.fulfilled, onAuthFulfilled)
+        .addCase(thunk.rejected, (state, action) => {
+          state.status = 'failed';
+          state.error = action.error.message;
+        });
+    });
+
+    // Vérification 2FA (code) + enrôlement 2FA (1re connexion)
+    [verifyTwoFactor, enrollVerifyTwoFactor].forEach((thunk) => {
       builder
         .addCase(thunk.pending, (state) => {
           state.status = 'loading';
@@ -52,16 +123,33 @@ const authSlice = createSlice({
         })
         .addCase(thunk.fulfilled, (state, action) => {
           state.status = 'succeeded';
-          state.user = action.payload;
+          state.user = action.payload.user;
           state.isAuthenticated = true;
+          state.twoFactor = { required: false, tempToken: null };
         })
         .addCase(thunk.rejected, (state, action) => {
           state.status = 'failed';
           state.error = action.error.message;
         });
     });
+
+    // Inscription
+    builder
+      .addCase(register.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(register.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.user = action.payload.user;
+        state.isAuthenticated = true;
+      })
+      .addCase(register.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.error.message;
+      });
   },
 });
 
-export const { logout } = authSlice.actions;
+export const { logout, clearTwoFactor } = authSlice.actions;
 export default authSlice.reducer;
