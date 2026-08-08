@@ -1,18 +1,22 @@
 import api from './api.js';
 
 export const adminService = {
-  // Tableau de bord
+  // Tableau de bord & finance
   dashboard: () => api.get('/admin/dashboard').then((r) => r.data),
+  finance: () => api.get('/admin/finance').then((r) => r.data),
 
   // Produits
   createProduct: (payload) => api.post('/admin/products', payload).then((r) => r.data),
   updateProduct: (id, payload) => api.put(`/admin/products/${id}`, payload).then((r) => r.data),
   deleteProduct: (id) => api.delete(`/admin/products/${id}`).then((r) => r.data),
   // Téléverse des fichiers (FormData, champ « images ») → renvoie les URLs
-  uploadImages: (formData) => api.post('/admin/products/upload', formData).then((r) => r.data),
+  // mode 'raw' = pas d'optimisation fond blanc (cachet/signature) ; défaut = photo produit.
+  uploadImages: (formData, mode = 'product') =>
+    api.post(`/admin/products/upload${mode === 'raw' ? '?mode=raw' : ''}`, formData).then((r) => r.data),
 
   // Commandes
   orders: () => api.get('/admin/orders').then((r) => r.data),
+  createOrder: (payload) => api.post('/admin/orders', payload).then((r) => r.data),
   order: (id) => api.get(`/admin/orders/${id}`).then((r) => r.data),
   updateOrderStatus: (id, payload) =>
     api.put(`/admin/orders/${id}/status`, payload).then((r) => r.data),

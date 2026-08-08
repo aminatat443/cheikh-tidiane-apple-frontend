@@ -22,6 +22,12 @@ const favoriteSlice = createSlice({
       persist(state.items);
     },
   },
+  // Réinitialise à la déconnexion ou au changement d'utilisateur (voir cartSlice).
+  extraReducers: (builder) => {
+    const reset = (state) => { state.items = []; persist([]); };
+    builder.addCase('auth/logout', reset);
+    builder.addCase('auth/resetUserData', reset);
+  },
 });
 
 export const { toggleFavorite, setFavorites } = favoriteSlice.actions;

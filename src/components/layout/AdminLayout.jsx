@@ -3,7 +3,7 @@ import { NavLink, Outlet, Link, useNavigate, useLocation } from 'react-router-do
 import { useDispatch, useSelector } from 'react-redux';
 import {
   FiGrid, FiSmartphone, FiShoppingBag, FiCreditCard, FiFileText, FiUsers,
-  FiSettings, FiLogOut, FiExternalLink, FiMenu, FiX, FiShield, FiRotateCcw, FiChevronUp, FiMoon, FiSun,
+  FiSettings, FiLogOut, FiExternalLink, FiMenu, FiX, FiShield, FiRotateCcw, FiChevronUp, FiMoon, FiSun, FiMail, FiTrendingUp,
 } from 'react-icons/fi';
 import { logout } from '@/store/authSlice';
 import NotificationBell from '@/components/common/NotificationBell';
@@ -13,7 +13,13 @@ import { cn } from '@/utils/format';
 import { isSuperAdmin } from '@/utils/roles';
 
 const groups = [
-  { title: 'Principal', items: [{ to: '/admin', label: 'Tableau de bord', icon: FiGrid, end: true }] },
+  {
+    title: 'Principal',
+    items: [
+      { to: '/admin', label: 'Tableau de bord', icon: FiGrid, end: true },
+      { to: '/admin/finance', label: 'Finance', icon: FiTrendingUp },
+    ],
+  },
   {
     title: 'Gestion',
     items: [
@@ -25,6 +31,7 @@ const groups = [
       { to: '/admin/clients', label: 'Clients', icon: FiUsers },
     ],
   },
+  { title: 'Communication', items: [{ to: '/admin/campaigns', label: 'Campagnes e-mail', icon: FiMail }] },
   { title: 'Configuration', items: [{ to: '/admin/settings', label: 'Réglages', icon: FiSettings }] },
 ];
 
@@ -32,12 +39,14 @@ const superAdminGroup = { title: 'Super-admin', items: [{ to: '/admin/admins', l
 
 // Titre de page dynamique (le plus spécifique d'abord).
 const TITLES = [
+  ['/admin/finance', 'Finance'],
   ['/admin/products', 'Produits'],
   ['/admin/orders', 'Commandes'],
   ['/admin/lebalma', 'Contrats Lebalma'],
   ['/admin/clients', 'Clients'],
   ['/admin/invoices', 'Factures'],
   ['/admin/returns', 'Retours'],
+  ['/admin/campaigns', 'Campagnes e-mail'],
   ['/admin/settings', 'Réglages'],
   ['/admin/admins', 'Administrateurs'],
   ['/admin', 'Tableau de bord'],
@@ -54,7 +63,7 @@ export default function AdminLayout() {
 
   const onLogout = () => {
     dispatch(logout());
-    navigate('/login');
+    navigate('/'); // retour à la boutique après déconnexion
   };
 
   const superAdmin = isSuperAdmin(user);

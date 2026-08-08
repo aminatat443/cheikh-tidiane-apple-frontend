@@ -25,22 +25,22 @@ const SLIDES = [
   },
   {
     image: '/hero/slider_2.webp',
-    eyebrow: 'Offres limitées',
-    title: 'Promotions\nexclusives.',
-    subtitle: "Des prix qui font la différence sur une sélection de produits Apple. Le moment idéal.",
-    cta: 'Voir les promos',
-    to: '/products?isPromo=true',
-    bg: 'from-accent-dark via-[#0b3a66] to-accent',
-    glow: 'bg-accent/40',
-  },
-  {
-    image: '/hero/slider_3.webp',
     eyebrow: 'Financement Lebalma',
     title: 'Payez en\nplusieurs fois.',
     subtitle: "À partir de l'iPhone 11 Pro. Réglez par Wave, Orange Money ou carte bancaire, en toute sérénité.",
     cta: 'Comment ça marche',
     to: '/lebalma',
     bg: 'from-primary via-accent-dark to-accent',
+    glow: 'bg-accent/40',
+  },
+  {
+    image: '/hero/slider_3.webp',
+    eyebrow: 'Offres limitées',
+    title: 'Promotions\nexclusives.',
+    subtitle: "Des prix qui font la différence sur une sélection de produits Apple. Le moment idéal.",
+    cta: 'Voir les promos',
+    to: '/products?isPromo=true',
+    bg: 'from-accent-dark via-[#0b3a66] to-accent',
     glow: 'bg-accent/40',
   },
 ];
@@ -61,10 +61,21 @@ export default function Hero() {
       {/* Ratio fixe du slider : 8/3 en desktop, plus haut en mobile */}
       <div className="relative isolate aspect-[4/5] overflow-hidden rounded-3xl text-white sm:aspect-[8/3]">
         {isImage ? (
-          /* Slide AVEC affiche : image pleine, cliquable, sans texte ni voile */
-          <Link to={slide.to} className="absolute inset-0 block" aria-label={slide.title?.replace(/\n/g, ' ')}>
-            <img src={slide.image} alt="" className="absolute inset-0 h-full w-full object-cover" />
-          </Link>
+          /* Slide AVEC affiche : image pleine cliquable + bouton d'action visible */
+          <>
+            <Link to={slide.to} className="absolute inset-0 block" aria-label={slide.title?.replace(/\n/g, ' ')}>
+              <img src={slide.image} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            </Link>
+            {/* Voile bas discret pour la lisibilité du bouton */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/45 to-transparent" />
+            <Link
+              to={slide.to}
+              className="btn-light group absolute bottom-6 left-7 z-10 sm:bottom-7 sm:left-16"
+            >
+              {slide.cta}
+              <FiArrowRight className="transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
+          </>
         ) : (
           /* Slide SANS image : dégradé + texte */
           <>
@@ -98,8 +109,8 @@ export default function Hero() {
           </>
         )}
 
-        {/* Indicateurs (toujours visibles, avec ombre pour ressortir sur une image) */}
-        <div className="absolute bottom-6 left-7 z-10 flex gap-2 sm:left-16">
+        {/* Indicateurs (à droite pour ne pas chevaucher le bouton d'action) */}
+        <div className="absolute bottom-6 right-7 z-10 flex gap-2 sm:right-16">
           {SLIDES.map((_, i) => (
             <button
               key={i}

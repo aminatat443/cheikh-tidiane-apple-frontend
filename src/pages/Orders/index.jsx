@@ -5,6 +5,7 @@ import { FiRotateCcw, FiPackage } from 'react-icons/fi';
 import Loader from '@/components/ui/Loader';
 import Modal from '@/components/ui/Modal';
 import StatusBadge from '@/components/ui/StatusBadge';
+import OrderTracker from '@/components/order/OrderTracker';
 import { orderService } from '@/services/auth.service';
 import { returnService } from '@/services/return.service';
 import { formatPrice, formatDate, cn } from '@/utils/format';
@@ -72,6 +73,12 @@ export default function Orders() {
                   ))}
                 </div>
               )}
+
+              {/* Suivi de commande (style Jumia) */}
+              <div className="mt-4 border-t border-line pt-4 dark:border-white/10">
+                <p className="mb-4 text-xs font-bold uppercase tracking-wide text-muted">Suivi de la commande</p>
+                <OrderTracker status={o.status} />
+              </div>
 
               {returnable && (
                 <div className="mt-3 flex justify-end">

@@ -3,7 +3,8 @@ import api from './api.js';
 export const authService = {
   login: (payload) => api.post('/auth/login', payload).then((r) => r.data),
   register: (payload) => api.post('/auth/register', payload).then((r) => r.data),
-  google: (credential) => api.post('/auth/google', { credential }).then((r) => r.data),
+  // Chemin « /auth/social » (et non « /google ») pour ne pas être bloqué par les bloqueurs de pub.
+  google: (credential) => api.post('/auth/social', { credential }).then((r) => r.data),
   me: () => api.get('/auth/me').then((r) => r.data),
   // Double authentification (2FA / TOTP)
   verify2fa: (payload) => api.post('/auth/2fa/verify', payload).then((r) => r.data),
@@ -32,4 +33,9 @@ export const orderService = {
   create: (payload) => api.post('/orders', payload).then((r) => r.data),
   list: () => api.get('/orders').then((r) => r.data),
   getOne: (id) => api.get(`/orders/${id}`).then((r) => r.data),
+};
+
+export const userService = {
+  // Mise à jour du profil (nom, téléphone, adresse, zone de livraison…)
+  updateProfile: (payload) => api.put('/users/profile', payload).then((r) => r.data),
 };

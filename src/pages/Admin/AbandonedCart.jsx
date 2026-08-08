@@ -38,7 +38,7 @@ export default function AbandonedCart() {
   return (
     <div className="card mt-6 p-6">
       <div className="flex items-start gap-3">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent/10 text-accent">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-accent/40 text-accent">
           <FiShoppingCart size={20} />
         </span>
         <div className="flex-1">

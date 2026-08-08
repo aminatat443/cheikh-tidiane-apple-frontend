@@ -9,6 +9,8 @@ import { store } from './store/index.js';
 import { SocketProvider } from './context/SocketContext.jsx';
 import { NotificationProvider } from './context/NotificationProvider.jsx';
 import { AuthModalProvider } from './context/AuthModalContext.jsx';
+import { DrawerProvider } from './context/DrawerContext.jsx';
+import ErrorBoundary from './components/common/ErrorBoundary.jsx';
 import './index.css';
 
 const queryClient = new QueryClient({
@@ -20,13 +22,17 @@ createRoot(document.getElementById('root')).render(
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <SocketProvider>
-            <NotificationProvider>
-              <AuthModalProvider>
-                <App />
-              </AuthModalProvider>
-            </NotificationProvider>
-          </SocketProvider>
+          <ErrorBoundary>
+            <SocketProvider>
+              <NotificationProvider>
+                <AuthModalProvider>
+                  <DrawerProvider>
+                    <App />
+                  </DrawerProvider>
+                </AuthModalProvider>
+              </NotificationProvider>
+            </SocketProvider>
+          </ErrorBoundary>
         </BrowserRouter>
       </QueryClientProvider>
     </Provider>

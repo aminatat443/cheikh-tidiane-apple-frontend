@@ -3,13 +3,14 @@ import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  FiHeart, FiShoppingBag, FiChevronRight, FiCheck, FiTruck, FiShield, FiLock, FiPhone, FiBell,
+  FiHeart, FiShoppingBag, FiChevronRight, FiChevronLeft, FiCheck, FiTruck, FiShield, FiLock, FiPhone, FiBell,
 } from 'react-icons/fi';
 import { FaWhatsapp } from 'react-icons/fa';
 import Loader from '@/components/ui/Loader';
 import Rating from '@/components/ui/Rating';
 import ProductMedia from '@/components/product/ProductMedia';
-import ProductCard from '@/components/product/ProductCard';
+import ProductCarousel from '@/components/product/ProductCarousel';
+import ProductReviews from '@/components/product/ProductReviews';
 import { productService } from '@/services/product.service';
 import { addItem } from '@/store/cartSlice';
 import { toggleFavorite } from '@/store/favoriteSlice';
@@ -44,7 +45,7 @@ export default function ProductDetails() {
 
   const { data: relatedData } = useQuery({
     queryKey: ['related', product?.category?.slug, id],
-    queryFn: () => productService.list({ category: product.category?.slug, limit: 8 }),
+    queryFn: () => productService.list({ category: product.category?.slug, limit: 16 }),
     enabled: !!product?.category?.slug,
   });
 
@@ -79,7 +80,7 @@ export default function ProductDetails() {
   const lebalma = computeLebalma(activePrice, product);
   const specs = product.specs && typeof product.specs === 'object' ? Object.entries(product.specs) : [];
   const inStock = product.stock == null || product.stock > 0;
-  const related = (relatedData?.data || []).filter((p) => p.id !== Number(id)).slice(0, 4);
+  const related = (relatedData?.data || []).filter((p) => p.id !== Number(id)).slice(0, 12);
 
   const addToCart = () =>
     dispatch(addItem({ product, color: activeColor, storage: activeStorage, condition: conditionLabel, price: activePrice }));
@@ -137,6 +138,35 @@ export default function ProductDetails() {
                 <span className="rounded-full bg-danger px-3 py-1 text-[11px] font-bold text-white shadow-soft">−{discount}%</span>
               )}
             </div>
+
+            {/* Flèches de défilement des photos (conditionnelles) */}
+            {images.length > 1 && (
+              <>
+                {activeImg > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveImg(activeImg - 1)}
+                    aria-label="Photo précédente"
+                    className="absolute left-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-primary shadow-card backdrop-blur transition hover:bg-white hover:text-accent dark:bg-primary-900/80 dark:text-white"
+                  >
+                    <FiChevronLeft size={20} />
+                  </button>
+                )}
+                {activeImg < images.length - 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveImg(activeImg + 1)}
+                    aria-label="Photo suivante"
+                    className="absolute right-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-primary shadow-card backdrop-blur transition hover:bg-white hover:text-accent dark:bg-primary-900/80 dark:text-white"
+                  >
+                    <FiChevronRight size={20} />
+                  </button>
+                )}
+                <span className="absolute bottom-3 right-3 rounded-full bg-primary/70 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">
+                  {activeImg + 1} / {images.length}
+                </span>
+              </>
+            )}
           </div>
 
           {/* Miniatures */}
@@ -169,7 +199,7 @@ export default function ProductDetails() {
           </h1>
 
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            {product.ratingCount > 0 && <Rating value={product.ratingAvg} count={product.ratingCount} />}
+            {product.ratingAvg > 0 && <Rating value={product.ratingAvg} count={product.ratingCount || undefined} />}
             {inStock ? (
               <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-success">
                 <span className="h-1.5 w-1.5 rounded-full bg-success" />
@@ -280,7 +310,7 @@ export default function ProductDetails() {
 
           {/* Actions */}
           <div className="mt-8 flex gap-3">
-            <button onClick={addToCart} disabled={!inStock} className="btn-buy flex-1">
+            <button onClick={addToCart} disabled={!inStock} className="btn-dark flex-1">
               <FiShoppingBag /> {inStock ? 'Ajouter au panier' : 'Indisponible'}
             </button>
             <button
@@ -390,6 +420,9 @@ export default function ProductDetails() {
         </div>
       </div>
 
+      {/* Notes & avis */}
+      <ProductReviews product={product} />
+
       {/* Vous aimerez aussi */}
       {related.length > 0 && (
         <section className="mt-16">
@@ -402,11 +435,7 @@ export default function ProductDetails() {
               Voir tout
             </Link>
           </div>
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {related.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
+          <ProductCarousel products={related} />
         </section>
       )}
 
@@ -417,7 +446,7 @@ export default function ProductDetails() {
             <p className="truncate text-xs text-muted">{product.name}</p>
             <p className="text-lg font-extrabold tracking-tight dark:text-white">{formatPrice(activePrice)}</p>
           </div>
-          <button onClick={addToCart} disabled={!inStock} className="btn-buy ml-auto shrink-0">
+          <button onClick={addToCart} disabled={!inStock} className="btn-dark ml-auto shrink-0">
             <FiShoppingBag /> {inStock ? 'Ajouter' : 'Indispo.'}
           </button>
         </div>

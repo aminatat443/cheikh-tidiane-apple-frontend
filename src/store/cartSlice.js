@@ -42,6 +42,13 @@ const cartSlice = createSlice({
       persist(state.items);
     },
   },
+  // Réinitialise à la déconnexion ou quand un AUTRE utilisateur se connecte
+  // (évite qu'un nouvel utilisateur hérite du panier du précédent sur le même appareil).
+  extraReducers: (builder) => {
+    const reset = (state) => { state.items = []; persist([]); };
+    builder.addCase('auth/logout', reset);
+    builder.addCase('auth/resetUserData', reset);
+  },
 });
 
 export const { addItem, updateQuantity, removeItem, clearCart } = cartSlice.actions;

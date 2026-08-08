@@ -24,6 +24,7 @@ import NotFound from '@/pages/NotFound';
 
 // Back-office
 import AdminDashboard from '@/pages/Admin/Dashboard';
+import AdminFinance from '@/pages/Admin/Finance';
 import AdminProducts from '@/pages/Admin/Products';
 import AdminOrders from '@/pages/Admin/Orders';
 import AdminLebalma from '@/pages/Admin/Lebalma';
@@ -31,6 +32,7 @@ import AdminClients from '@/pages/Admin/Clients';
 import AdminInvoices from '@/pages/Admin/Invoices';
 import AdminInvoice from '@/pages/Admin/Invoice';
 import AdminReturns from '@/pages/Admin/Returns';
+import AdminCampaigns from '@/pages/Admin/Campaigns';
 import AdminSettings from '@/pages/Admin/Settings';
 import AdminAdmins from '@/pages/Admin/Admins';
 
@@ -69,6 +71,7 @@ export default function AppRoutes() {
       <Route element={<ProtectedRoute adminOnly />}>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
+          <Route path="finance" element={<AdminFinance />} />
           <Route path="products" element={<AdminProducts />} />
           <Route path="orders" element={<AdminOrders />} />
           <Route path="lebalma" element={<AdminLebalma />} />
@@ -76,6 +79,7 @@ export default function AppRoutes() {
           <Route path="invoices" element={<AdminInvoices />} />
           <Route path="invoices/:id" element={<AdminInvoice />} />
           <Route path="returns" element={<AdminReturns />} />
+          <Route path="campaigns" element={<AdminCampaigns />} />
           <Route path="settings" element={<AdminSettings />} />
           <Route path="admins" element={<AdminAdmins />} />
           <Route path="*" element={<Navigate to="/admin" replace />} />

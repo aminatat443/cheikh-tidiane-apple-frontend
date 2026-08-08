@@ -83,9 +83,9 @@ export default function ProductCard({ product }) {
           {product.name}
         </Link>
 
-        {product.ratingCount > 0 && (
+        {product.ratingAvg > 0 && (
           <div className="mt-1">
-            <Rating value={product.ratingAvg} count={product.ratingCount} />
+            <Rating value={product.ratingAvg} count={product.ratingCount || undefined} />
           </div>
         )}
 

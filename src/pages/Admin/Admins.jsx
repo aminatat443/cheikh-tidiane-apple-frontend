@@ -101,7 +101,7 @@ export default function Admins() {
                     <tr key={a.id} className="group">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-sm font-bold ${superRow ? 'bg-accent/10 text-accent' : 'bg-primary/10 text-primary dark:bg-white/10 dark:text-white'}`}>
+                          <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full border text-sm font-bold ${superRow ? 'border-accent/40 text-accent' : 'border-primary/30 text-primary dark:border-white/30 dark:text-white'}`}>
                             {superRow ? <FiShield size={16} /> : <FiUser size={16} />}
                           </span>
                           <div className="min-w-0">

@@ -7,41 +7,51 @@ const twoFactorPayload = (d) => ({
   tempToken: d.tempToken,
 });
 
-export const login = createAsyncThunk('auth/login', async (payload) => {
+/**
+ * Enregistre la session et, si un AUTRE utilisateur s'était connecté sur cet
+ * appareil, vide panier + favoris (chaque utilisateur repart de ses propres ajouts).
+ */
+function persistUserSession(res, thunkAPI) {
+  localStorage.setItem('token', res.data.token);
+  const uid = String(res.data.user.id);
+  const prev = localStorage.getItem('lastUserId');
+  if (prev && prev !== uid) {
+    thunkAPI.dispatch({ type: 'auth/resetUserData' });
+  }
+  localStorage.setItem('lastUserId', uid);
+  return { user: res.data.user };
+}
+
+export const login = createAsyncThunk('auth/login', async (payload, thunkAPI) => {
   const res = await authService.login(payload);
   // 2FA (vérification ou enrôlement obligatoire) : pas de jeton final.
   if (res.data?.twoFactorRequired || res.data?.twoFactorSetupRequired) {
     return twoFactorPayload(res.data);
   }
-  localStorage.setItem('token', res.data.token);
-  return { user: res.data.user };
+  return persistUserSession(res, thunkAPI);
 });
 
-export const enrollVerifyTwoFactor = createAsyncThunk('auth/enrollVerify2fa', async (payload) => {
+export const enrollVerifyTwoFactor = createAsyncThunk('auth/enrollVerify2fa', async (payload, thunkAPI) => {
   const res = await authService.enrollVerify2fa(payload); // { tempToken, code }
-  localStorage.setItem('token', res.data.token);
-  return { user: res.data.user };
+  return persistUserSession(res, thunkAPI);
 });
 
-export const register = createAsyncThunk('auth/register', async (payload) => {
+export const register = createAsyncThunk('auth/register', async (payload, thunkAPI) => {
   const res = await authService.register(payload);
-  localStorage.setItem('token', res.data.token);
-  return { user: res.data.user };
+  return persistUserSession(res, thunkAPI);
 });
 
-export const googleLogin = createAsyncThunk('auth/google', async (credential) => {
+export const googleLogin = createAsyncThunk('auth/google', async (credential, thunkAPI) => {
   const res = await authService.google(credential);
   if (res.data?.twoFactorRequired || res.data?.twoFactorSetupRequired) {
     return twoFactorPayload(res.data);
   }
-  localStorage.setItem('token', res.data.token);
-  return { user: res.data.user };
+  return persistUserSession(res, thunkAPI);
 });
 
-export const verifyTwoFactor = createAsyncThunk('auth/verify2fa', async (payload) => {
+export const verifyTwoFactor = createAsyncThunk('auth/verify2fa', async (payload, thunkAPI) => {
   const res = await authService.verify2fa(payload); // { tempToken, code }
-  localStorage.setItem('token', res.data.token);
-  return { user: res.data.user };
+  return persistUserSession(res, thunkAPI);
 });
 
 export const fetchMe = createAsyncThunk('auth/me', async () => {
@@ -77,6 +87,7 @@ const authSlice = createSlice({
       .addCase(fetchMe.fulfilled, (state, action) => {
         state.user = action.payload;
         state.isAuthenticated = true;
+        if (action.payload?.id) localStorage.setItem('lastUserId', String(action.payload.id));
       })
       .addCase(fetchMe.rejected, (state) => {
         localStorage.removeItem('token');

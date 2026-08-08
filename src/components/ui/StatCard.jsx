@@ -2,13 +2,13 @@ import { Link } from 'react-router-dom';
 import { FiArrowRight } from 'react-icons/fi';
 import { cn } from '@/utils/format';
 
-// Tuile d'icône colorée + halo décoratif assortis, par tonalité.
+// Tuile d'icône « linear » (bordure + fond transparent) + halo décoratif, par tonalité.
 const TONES = {
-  accent: { tile: 'bg-accent text-white shadow-glow', blob: 'bg-accent' },
-  success: { tile: 'bg-success text-white', blob: 'bg-success' },
-  warning: { tile: 'bg-warning text-white', blob: 'bg-warning' },
-  danger: { tile: 'bg-danger text-white', blob: 'bg-danger' },
-  primary: { tile: 'bg-primary text-white dark:bg-white dark:text-primary', blob: 'bg-primary' },
+  accent: { tile: 'border border-accent/50 text-accent', blob: 'bg-accent' },
+  success: { tile: 'border border-success/50 text-success', blob: 'bg-success' },
+  warning: { tile: 'border border-warning/50 text-warning', blob: 'bg-warning' },
+  danger: { tile: 'border border-danger/50 text-danger', blob: 'bg-danger' },
+  primary: { tile: 'border border-primary/40 text-primary dark:border-white/40 dark:text-white', blob: 'bg-primary' },
 };
 
 /**

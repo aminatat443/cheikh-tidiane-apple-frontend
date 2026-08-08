@@ -4,9 +4,6 @@ import { FiUploadCloud, FiSave, FiCheckCircle, FiTrash2 } from 'react-icons/fi';
 import Loader from '@/components/ui/Loader';
 import PageHeader from '@/components/ui/PageHeader';
 import TwoFactorSettings from './TwoFactorSettings';
-import CampaignPromo from './CampaignPromo';
-import AbandonedCart from './AbandonedCart';
-import Recommendations from './Recommendations';
 import { adminService } from '@/services/admin.service';
 import { SHOP_DEFAULTS, SHOP_LOGO } from '@/constants';
 
@@ -42,7 +39,8 @@ export default function Settings() {
     try {
       const fd = new FormData();
       fd.append('images', file);
-      const up = await adminService.uploadImages(fd);
+      // 'raw' : conserve la transparence du cachet/signature (pas de fond blanc forcé)
+      const up = await adminService.uploadImages(fd, 'raw');
       if (up.data?.[0]) set({ stampUrl: up.data[0] });
     } catch (e) {
       setError(e.response?.data?.message || 'Échec du téléversement');
@@ -130,20 +128,6 @@ export default function Settings() {
           </span>
         )}
       </div>
-
-      {/* Campagnes e-mail */}
-      <CampaignPromo
-        type="promo"
-        title="Campagne e-mail — Promotions"
-        description="E-mail responsive généré à partir de vos produits (offres & remises)."
-      />
-      <CampaignPromo
-        type="newsletter"
-        title="Newsletter — Nouveaux arrivages"
-        description="Met en avant vos derniers produits et nouveautés."
-      />
-      <AbandonedCart />
-      <Recommendations />
 
       {/* Sécurité — double authentification */}
       <TwoFactorSettings />

@@ -3,16 +3,51 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
   FiEye, FiFileText, FiSearch, FiClock, FiCheckCircle, FiTruck, FiPackage, FiX, FiShoppingBag,
+  FiPlus, FiDownload, FiPrinter,
 } from 'react-icons/fi';
+import { FaWhatsapp } from 'react-icons/fa';
 import Modal from '@/components/ui/Modal';
 import StatusBadge from '@/components/ui/StatusBadge';
 import StatCard from '@/components/ui/StatCard';
 import PageHeader from '@/components/ui/PageHeader';
 import EmptyState from '@/components/ui/EmptyState';
 import TableSkeleton from '@/components/ui/TableSkeleton';
+import NewOrderModal from './NewOrderModal';
 import { adminService } from '@/services/admin.service';
 import { formatPrice, formatDate } from '@/utils/format';
 import { ORDER_STATUSES, PAYMENT_STATUSES, PAYMENT_METHOD_LABELS } from '@/constants';
+
+/** Télécharge la facture PDF (générée côté serveur). */
+async function downloadInvoice(order) {
+  const blob = await adminService.invoicePdf(order.id);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `facture-${order.reference}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/** Ouvre la facture PDF dans un nouvel onglet pour impression. */
+async function printInvoice(order) {
+  const blob = await adminService.invoicePdf(order.id);
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+}
+
+/** Partage un récapitulatif de facture au client via WhatsApp. */
+function shareWhatsApp(order) {
+  const phone = (order.shippingPhone || order.user?.phone || '').replace(/[^0-9]/g, '');
+  const lines = (order.items || [])
+    .map((it) => `• ${it.productName} ×${it.quantity} — ${formatPrice(it.unitPrice * it.quantity)}`)
+    .join('\n');
+  const text =
+    `*Cheikh Tidiane Apple* — Facture ${order.reference}\n\n${lines}\n\n` +
+    `Total : ${formatPrice(order.total)}\n\nMerci pour votre achat !`;
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
+}
 
 const meta = (list, v) => list.find((s) => s.value === v) || { label: v, tone: 'muted' };
 
@@ -29,6 +64,7 @@ export default function Orders() {
   const [statusFilter, setStatusFilter] = useState(null);
   const [detail, setDetail] = useState(null);
   const [busy, setBusy] = useState(null);
+  const [showNew, setShowNew] = useState(false);
 
   const { data, isLoading } = useQuery({ queryKey: ['admin', 'orders'], queryFn: () => adminService.orders() });
   const orders = data?.data || [];
@@ -61,7 +97,22 @@ export default function Orders() {
 
   return (
     <div>
-      <PageHeader title="Commandes" subtitle={`${orders.length} commande(s) au total.`} />
+      <PageHeader title="Commandes" subtitle={`${orders.length} commande(s) au total.`}>
+        <button onClick={() => setShowNew(true)} className="btn-primary">
+          <FiPlus /> Nouvelle commande
+        </button>
+      </PageHeader>
+
+      <NewOrderModal
+        open={showNew}
+        onClose={() => setShowNew(false)}
+        onCreated={() => {
+          setShowNew(false);
+          qc.invalidateQueries({ queryKey: ['admin', 'orders'] });
+          qc.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+          qc.invalidateQueries({ queryKey: ['admin', 'finance'] });
+        }}
+      />
 
       {/* 4 cartes de statut (cliquables = filtre) */}
       <div className="stagger-in mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -205,8 +256,18 @@ export default function Orders() {
               <div className="flex justify-between text-base font-bold dark:text-white"><span>Total</span><span>{formatPrice(detail.total)}</span></div>
             </div>
 
-            <div className="flex justify-end">
-              <Link to={`/admin/invoices/${detail.id}`} className="btn-primary"><FiFileText /> Voir la facture</Link>
+            {/* Actions facture */}
+            <div className="flex flex-wrap justify-end gap-2 border-t border-line pt-4 dark:border-white/10">
+              <button onClick={() => downloadInvoice(detail)} className="btn-outline">
+                <FiDownload size={15} /> Générer la facture
+              </button>
+              <button onClick={() => shareWhatsApp(detail)} className="btn bg-[#25D366] text-white hover:bg-[#1ebe5b]">
+                <FaWhatsapp size={16} /> WhatsApp
+              </button>
+              <button onClick={() => printInvoice(detail)} className="btn-outline">
+                <FiPrinter size={15} /> Imprimer
+              </button>
+              <Link to={`/admin/invoices/${detail.id}`} className="btn-primary"><FiFileText size={15} /> Voir la facture</Link>
             </div>
           </div>
         )}

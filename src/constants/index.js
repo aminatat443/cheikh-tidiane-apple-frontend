@@ -45,7 +45,16 @@ export const PAYMENT_METHOD_LABELS = {
   orange_money: 'Orange Money',
   card: 'Carte bancaire',
   lebalma: 'Lebalma',
+  cash: 'Espèces (sur place)',
 };
+
+// Moyens de paiement sélectionnables pour une vente au comptoir
+export const POS_PAYMENT_METHODS = [
+  { value: 'cash', label: 'Espèces' },
+  { value: 'wave', label: 'Wave' },
+  { value: 'orange_money', label: 'Orange Money' },
+  { value: 'card', label: 'Carte bancaire' },
+];
 
 // === Statuts de commande (front) ===
 export const ORDER_STATUSES = [
