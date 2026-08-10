@@ -14,7 +14,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { selectCartCount } from '@/store/cartSlice';
 import { selectFavoriteCount } from '@/store/favoriteSlice';
 import { logout } from '@/store/authSlice';
-import { CATEGORIES } from '@/constants';
+import { CATEGORIES, SHOP_LOGO } from '@/constants';
 import { cn } from '@/utils/format';
 import { isAdmin } from '@/utils/roles';
 
@@ -188,9 +188,10 @@ export default function Navbar() {
                 )}
               </div>
 
-              {/* Mobile : favoris + compte + panier */}
+              {/* Mobile : favoris + panier + compte (profil en dernier) */}
               <div className="flex items-center gap-0.5 lg:hidden">
                 {!admin && <CountIcon onClick={() => openDrawer('favorites')} icon={FiHeart} count={favCount} label="Favoris" />}
+                <CountIcon onClick={() => openDrawer('cart')} icon={FiShoppingBag} count={cartCount} label="Panier" />
                 <button
                   onClick={() => (isAuthenticated ? navigate('/profile') : openAuth('login'))}
                   className={iconBtnCls}
@@ -198,7 +199,6 @@ export default function Navbar() {
                 >
                   <FiUser size={20} />
                 </button>
-                <CountIcon onClick={() => openDrawer('cart')} icon={FiShoppingBag} count={cartCount} label="Panier" />
               </div>
             </div>
           </div>
@@ -260,7 +260,8 @@ export default function Navbar() {
 function BrandLogo() {
   return (
     <Link to="/" className="flex shrink-0 items-center" aria-label="Cheikh Tidiane — Accueil">
-      <img src="/images/logo_cta.svg" alt="Cheikh Tidiane" className="h-9 w-auto sm:h-10" />
+      {/* bg-white : le logo étant un « découpage » sur fond noir, on éclaire les trous pour qu'il soit net */}
+      <img src={SHOP_LOGO} alt="Cheikh Tidiane Apple" className="h-10 w-auto rounded-lg bg-white sm:h-14" />
     </Link>
   );
 }

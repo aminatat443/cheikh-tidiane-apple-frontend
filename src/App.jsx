@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import AppRoutes from './routes/AppRoutes';
+import ScrollToTop from './components/common/ScrollToTop';
 import { fetchMe } from './store/authSlice';
 
 export default function App() {
@@ -11,5 +12,10 @@ export default function App() {
     if (localStorage.getItem('token')) dispatch(fetchMe());
   }, [dispatch]);
 
-  return <AppRoutes />;
+  return (
+    <>
+      <ScrollToTop />
+      <AppRoutes />
+    </>
+  );
 }

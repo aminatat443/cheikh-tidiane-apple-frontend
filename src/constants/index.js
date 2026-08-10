@@ -109,8 +109,8 @@ export const LEBALMA_PAY_METHODS = [
   { value: 'cash', label: 'Espèces (en boutique)' },
 ];
 
-// Logo de la boutique (PNG) pour l'entête des factures
-export const SHOP_LOGO = '/images/LOGO_CTA.png';
+// Logo de la boutique (PNG) — navbar, en-tête des factures, back-office
+export const SHOP_LOGO = '/images/cheikh-tidiane-apple.svg';
 
 // Coordonnées par défaut de la boutique (surchargées par les réglages admin)
 export const SHOP_DEFAULTS = {

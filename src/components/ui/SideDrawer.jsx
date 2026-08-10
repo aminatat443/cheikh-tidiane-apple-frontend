@@ -33,8 +33,9 @@ export default function SideDrawer({ open, onClose, title, children, width = 'ma
         aria-modal="true"
         aria-label={title}
         className={cn(
-          'absolute top-0 flex h-full w-full flex-col bg-white shadow-card-hover transition-transform duration-300 ease-smooth dark:bg-primary-900',
-          isLeft ? 'left-0' : 'right-0',
+          // w-[88%] : panneau flottant qui laisse voir la page derrière sur mobile/tablette
+          'absolute top-0 flex h-full w-[88%] flex-col bg-white shadow-card-hover transition-transform duration-300 ease-smooth dark:bg-primary-900',
+          isLeft ? 'left-0 rounded-r-2xl' : 'right-0 rounded-l-2xl',
           width,
           open ? 'translate-x-0' : isLeft ? '-translate-x-full' : 'translate-x-full'
         )}

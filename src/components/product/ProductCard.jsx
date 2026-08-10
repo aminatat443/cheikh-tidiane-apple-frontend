@@ -29,11 +29,6 @@ export default function ProductCard({ product }) {
 
         {/* Badges */}
         <div className="absolute left-3 top-3 flex flex-col items-start gap-1.5">
-          {product.isNew && (
-            <span className="rounded-full bg-primary px-2.5 py-1 text-[11px] font-semibold text-white shadow-soft">
-              Nouveau
-            </span>
-          )}
           {discount > 0 && (
             <span className="rounded-full bg-promo px-2.5 py-1 text-[11px] font-semibold text-white shadow-soft">
               −{discount}%
@@ -59,7 +54,7 @@ export default function ProductCard({ product }) {
         </button>
 
         {/* CTA panier — apparaît au survol (desktop), toujours visible en tactile */}
-        <div className="absolute inset-x-3 bottom-3 translate-y-2 opacity-0 transition-all duration-300 ease-smooth group-hover:translate-y-0 group-hover:opacity-100 max-sm:translate-y-0 max-sm:opacity-100">
+        <div className="absolute inset-x-3 bottom-3 translate-y-2 opacity-0 transition-all duration-300 ease-smooth group-hover:translate-y-0 group-hover:opacity-100 max-lg:translate-y-0 max-lg:opacity-100">
           <button
             onClick={() => dispatch(addItem({ product }))}
             className="flex w-full items-center justify-center gap-2 rounded-full bg-primary/95 py-2.5 text-sm font-semibold text-white shadow-card backdrop-blur transition hover:bg-primary"
@@ -89,15 +84,13 @@ export default function ProductCard({ product }) {
           </div>
         )}
 
-        <div className="mt-2 flex items-baseline gap-1.5">
-          {product.variants?.length > 1 && (
-            <span className="text-xs font-medium text-muted">Dès</span>
-          )}
-          <span className="text-lg font-bold tracking-tight text-primary dark:text-white">
+        <div className="mt-2 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+          <span className="whitespace-nowrap text-base font-bold tracking-tight text-primary dark:text-white sm:text-lg">
+            {product.variants?.length > 1 && <span className="mr-1 text-xs font-medium text-muted">Dès</span>}
             {formatPrice(product.price)}
           </span>
           {discount > 0 && (
-            <span className="text-sm text-muted line-through">{formatPrice(product.oldPrice)}</span>
+            <span className="whitespace-nowrap text-sm text-muted line-through">{formatPrice(product.oldPrice)}</span>
           )}
         </div>
 

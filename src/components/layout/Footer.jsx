@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { FiInstagram, FiFacebook, FiTwitter } from 'react-icons/fi';
+import { SHOP_LOGO } from '@/constants';
 
 const columns = [
   {
@@ -36,7 +37,7 @@ export default function Footer() {
     <footer className="mt-20 border-t border-line bg-primary text-white">
       <div className="container-page grid grid-cols-2 gap-8 py-14 md:grid-cols-5">
         <div className="col-span-2">
-          <h2 className="text-xl font-extrabold">Cheikh Tidiane Apple</h2>
+          <img src={SHOP_LOGO} alt="Cheikh Tidiane Apple" className="h-14 w-auto rounded-lg bg-white" />
           <p className="mt-3 max-w-xs text-sm text-white/60">
             iPhone, iPad et MacBook au meilleur prix. Payez comptant ou en plusieurs fois avec
             Lebalma — Wave, Orange Money, carte bancaire.

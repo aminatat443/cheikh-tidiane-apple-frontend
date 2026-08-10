@@ -65,11 +65,11 @@ export default function ProductDetails() {
   const activePrice = activeVariant?.price ?? product.price;
 
   const conditionOptions = [
-    { value: 'reconditionne', label: 'Reconditionné comme neuf' },
+    { value: 'reconditionne', label: 'Reconditionné' },
     ...(product.newAvailable ? [{ value: 'neuf', label: 'Neuf' }] : []),
   ];
   const conditionLabel =
-    conditionOptions.find((o) => o.value === condition)?.label || 'Reconditionné comme neuf';
+    conditionOptions.find((o) => o.value === condition)?.label || 'Reconditionné';
   const firstColor = product.colors?.[0];
   const firstColorName = firstColor?.name || firstColor;
   const activeColor = color ?? firstColorName ?? null;
@@ -131,9 +131,6 @@ export default function ProductDetails() {
               />
             )}
             <div className="absolute left-4 top-4 flex flex-col gap-1.5">
-              {product.isNew && (
-                <span className="rounded-full bg-primary/90 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur">Nouveau</span>
-              )}
               {discount > 0 && (
                 <span className="rounded-full bg-danger px-3 py-1 text-[11px] font-bold text-white shadow-soft">−{discount}%</span>
               )}
@@ -232,9 +229,9 @@ export default function ProductDetails() {
             <p className="mt-4 max-w-prose text-sm leading-relaxed text-muted">{product.description}</p>
           )}
 
-          {/* Version / état */}
+          {/* État du produit */}
           <div className="mt-7">
-            <p className="mb-2.5 text-sm font-semibold dark:text-white">Version</p>
+            <p className="mb-2.5 text-sm font-semibold dark:text-white">État</p>
             <div className="flex flex-wrap gap-2">
               {conditionOptions.map((o) => (
                 <button

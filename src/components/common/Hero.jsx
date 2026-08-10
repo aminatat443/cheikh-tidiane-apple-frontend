@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FiArrowRight } from 'react-icons/fi';
+import { FiArrowRight, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
 /**
  * Hero avec slider d'affiches (nouveautés, promos, Lebalma).
@@ -14,7 +14,9 @@ import { FiArrowRight } from 'react-icons/fi';
  */
 const SLIDES = [
   {
-    image: '/hero/slider_1.webp',
+    image: '/hero/slider-1-desktop.png',
+    imageTablet: '/hero/slider-1-tablette.png',
+    imageMobile: '/hero/slider-1-mobile.png',
     eyebrow: 'Nouveautés',
     title: 'Les derniers iPhone,\nsublimés.',
     subtitle: "De l'iPhone XR au tout dernier modèle. Design, puissance et élégance à portée de main.",
@@ -24,7 +26,10 @@ const SLIDES = [
     glow: 'bg-accent/30',
   },
   {
-    image: '/hero/slider_2.webp',
+    // Slider 2 (Lebalma) : versions dédiées selon la taille d'écran
+    image: '/hero/slider-2-desktop.png',
+    imageTablet: '/hero/slider-2-tablette.png',
+    imageMobile: '/hero/slider-2-mobile.png',
     eyebrow: 'Financement Lebalma',
     title: 'Payez en\nplusieurs fois.',
     subtitle: "À partir de l'iPhone 11 Pro. Réglez par Wave, Orange Money ou carte bancaire, en toute sérénité.",
@@ -34,7 +39,9 @@ const SLIDES = [
     glow: 'bg-accent/40',
   },
   {
-    image: '/hero/slider_3.webp',
+    image: '/hero/slider-3-desktop.png',
+    imageTablet: '/hero/slider-3-tablette.png',
+    imageMobile: '/hero/slider-3-mobile.png',
     eyebrow: 'Offres limitées',
     title: 'Promotions\nexclusives.',
     subtitle: "Des prix qui font la différence sur une sélection de produits Apple. Le moment idéal.",
@@ -58,14 +65,17 @@ export default function Hero() {
 
   return (
     <section className="container-page pt-4 sm:pt-6">
-      {/* Ratio fixe du slider : 8/3 en desktop, plus haut en mobile */}
-      <div className="relative isolate aspect-[4/5] overflow-hidden rounded-3xl text-white sm:aspect-[8/3]">
+      {/* Ratio adapté : portrait sur mobile, 16/9 tablette, panoramique desktop */}
+      <div className="relative isolate aspect-[4/5] overflow-hidden rounded-2xl text-white sm:aspect-[16/9] sm:rounded-3xl lg:aspect-[8/3]">
         {isImage ? (
           /* Slide AVEC affiche : image pleine cliquable + bouton d'action visible */
           <>
-            <Link to={slide.to} className="absolute inset-0 block" aria-label={slide.title?.replace(/\n/g, ' ')}>
+            {/* Image non cliquable — seul le bouton l'est */}
+            <picture>
+              {slide.imageMobile && <source media="(max-width: 639px)" srcSet={slide.imageMobile} />}
+              {slide.imageTablet && <source media="(max-width: 1023px)" srcSet={slide.imageTablet} />}
               <img src={slide.image} alt="" className="absolute inset-0 h-full w-full object-cover" />
-            </Link>
+            </picture>
             {/* Voile bas discret pour la lisibilité du bouton */}
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/45 to-transparent" />
             <Link
@@ -108,6 +118,22 @@ export default function Hero() {
             </div>
           </>
         )}
+
+        {/* Flèches de navigation ultra-modernes (verre dépoli) */}
+        <button
+          onClick={() => setIndex((i) => (i - 1 + SLIDES.length) % SLIDES.length)}
+          aria-label="Affiche précédente"
+          className="absolute left-3 top-1/2 z-10 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-white ring-1 ring-white/25 backdrop-blur-md transition duration-300 hover:scale-110 hover:bg-white/20 active:scale-95 sm:h-11 sm:w-11 lg:left-5"
+        >
+          <FiChevronLeft size={22} />
+        </button>
+        <button
+          onClick={() => setIndex((i) => (i + 1) % SLIDES.length)}
+          aria-label="Affiche suivante"
+          className="absolute right-3 top-1/2 z-10 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-white ring-1 ring-white/25 backdrop-blur-md transition duration-300 hover:scale-110 hover:bg-white/20 active:scale-95 sm:h-11 sm:w-11 lg:right-5"
+        >
+          <FiChevronRight size={22} />
+        </button>
 
         {/* Indicateurs (à droite pour ne pas chevaucher le bouton d'action) */}
         <div className="absolute bottom-6 right-7 z-10 flex gap-2 sm:right-16">

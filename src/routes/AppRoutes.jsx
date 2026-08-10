@@ -18,6 +18,7 @@ import Favorites from '@/pages/Favorites';
 import Search from '@/pages/Search';
 import Contact from '@/pages/Contact';
 import Lebalma from '@/pages/Lebalma';
+import Avis from '@/pages/Avis';
 import PaymentSimulator from '@/pages/PaymentSimulator';
 import PaymentReturn from '@/pages/PaymentReturn';
 import NotFound from '@/pages/NotFound';
@@ -47,6 +48,7 @@ export default function AppRoutes() {
         <Route path="products/:id" element={<ProductDetails />} />
         <Route path="search" element={<Search />} />
         <Route path="lebalma" element={<Lebalma />} />
+        <Route path="avis" element={<Avis />} />
         <Route path="contact" element={<Contact />} />
         <Route path="cart" element={<Cart />} />
         <Route path="login" element={<Login />} />

@@ -14,9 +14,9 @@ const slugify = (str) =>
 const FLAGS = [
   { key: 'isNew', label: 'Nouveauté' },
   { key: 'isPromo', label: 'En promo' },
-  { key: 'isFeatured', label: 'Mis en avant' },
+  { key: 'isFeatured', label: 'Vente flash' },
   { key: 'isTopSale', label: 'Top vente' },
-  { key: 'newAvailable', label: 'Version neuve dispo' },
+  { key: 'newAvailable', label: 'Neuf disponible' },
 ];
 
 export default function ProductForm({ product, categories = [], onClose, onSaved }) {

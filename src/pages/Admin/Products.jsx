@@ -12,7 +12,7 @@ import { adminService } from '@/services/admin.service';
 import { productService, categoryService } from '@/services/product.service';
 import { formatPrice, cn } from '@/utils/format';
 
-// Pastille bascule (mise en avant rapide : à la une / nouveauté / promo).
+// Pastille bascule (mise en avant rapide : vente flash / nouveauté / promo).
 function ToggleChip({ active, onClick, disabled, icon: Icon, label, tone = 'accent' }) {
   const on = {
     accent: 'bg-accent text-white',
@@ -152,7 +152,7 @@ export default function Products() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
-                        <ToggleChip active={p.isFeatured} disabled={busyFlag === `${p.id}:isFeatured`} onClick={() => toggleFlag(p, 'isFeatured')} icon={FiStar} label="À la une" tone="accent" />
+                        <ToggleChip active={p.isFeatured} disabled={busyFlag === `${p.id}:isFeatured`} onClick={() => toggleFlag(p, 'isFeatured')} icon={FiStar} label="Vente flash" tone="accent" />
                         <ToggleChip active={p.isNew} disabled={busyFlag === `${p.id}:isNew`} onClick={() => toggleFlag(p, 'isNew')} icon={FiZap} label="Nouvel arrivage" tone="warning" />
                         <ToggleChip active={p.isPromo} disabled={busyFlag === `${p.id}:isPromo`} onClick={() => toggleFlag(p, 'isPromo')} icon={FiTag} label="En promo" tone="danger" />
                       </div>

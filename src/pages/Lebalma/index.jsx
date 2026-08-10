@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { FiArrowRight, FiCheck, FiSmartphone, FiCreditCard, FiPackage, FiCalendar } from 'react-icons/fi';
 import { FaWhatsapp } from 'react-icons/fa';
 import Reveal from '@/components/common/Reveal';
+import ProductCarousel from '@/components/product/ProductCarousel';
+import { productService } from '@/services/product.service';
 import { formatPrice } from '@/utils/format';
 import { WHATSAPP_NUMBER } from '@/constants';
 
@@ -38,6 +41,12 @@ export default function Lebalma() {
   const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
     'Bonjour, je souhaite des informations sur le financement Lebalma.'
   )}`;
+
+  const { data: eligible } = useQuery({
+    queryKey: ['lebalma-eligible'],
+    queryFn: () => productService.list({ lebalma: 'true', limit: 12 }),
+  });
+  const eligibleProducts = eligible?.data || [];
 
   return (
     <div className="container-page py-8 sm:py-10">
@@ -129,7 +138,14 @@ export default function Lebalma() {
       <Reveal as="section" className="mt-20">
         <div className="overflow-hidden rounded-3xl bg-surface ring-1 ring-line dark:bg-primary-800 dark:ring-white/10">
           <div className="grid gap-8 p-8 sm:p-12 lg:grid-cols-2 lg:items-center">
-            <div>
+            <div className="flex items-center gap-5 sm:gap-7">
+              <img
+                src="/images/iphone-1.png"
+                alt="iPhone"
+                className="h-36 w-auto shrink-0 drop-shadow-xl sm:h-48"
+                loading="lazy"
+              />
+              <div>
               <p className="eyebrow">Exemple</p>
               <h2 className="mt-2 text-2xl font-extrabold tracking-tighter dark:text-white sm:text-3xl">
                 iPhone 14 Simple · 128 Go
@@ -141,6 +157,7 @@ export default function Lebalma() {
               <Link to="/products?lebalma=true" className="btn-primary mt-6">
                 Choisir mon iPhone <FiArrowRight />
               </Link>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-2xl bg-white p-5 text-center ring-1 ring-line dark:bg-primary-900 dark:ring-white/10">
@@ -160,12 +177,30 @@ export default function Lebalma() {
         </div>
       </Reveal>
 
+      {/* iPhone éligibles — carrousel horizontal */}
+      {eligibleProducts.length > 0 && (
+        <Reveal as="section" className="mt-20">
+          <div className="mb-6 flex items-end justify-between gap-4">
+            <div>
+              <p className="eyebrow">Éligibles</p>
+              <h2 className="mt-2 text-2xl font-extrabold tracking-tighter dark:text-white sm:text-3xl">
+                iPhone éligibles au Lebalma
+              </h2>
+            </div>
+            <Link to="/products?lebalma=true" className="hidden shrink-0 text-sm font-semibold text-accent hover:underline sm:inline">
+              Voir tout
+            </Link>
+          </div>
+          <ProductCarousel products={eligibleProducts} />
+        </Reveal>
+      )}
+
       {/* Moyens de paiement + note */}
       <Reveal as="section" className="mt-20">
         <div className="flex flex-col items-center gap-4 text-center">
           <p className="eyebrow">Paiement</p>
           <div className="flex flex-wrap justify-center gap-2">
-            {['Wave', 'Orange Money', 'Visa', 'Mastercard'].map((m) => (
+            {['Wave', 'Orange Money', 'Virement bancaire'].map((m) => (
               <span key={m} className="chip"><FiCheck className="text-accent" size={13} /> {m}</span>
             ))}
           </div>

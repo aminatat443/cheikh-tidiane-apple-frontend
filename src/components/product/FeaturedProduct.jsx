@@ -11,8 +11,11 @@ export default function FeaturedProduct({ product }) {
 
   return (
     <div className="grid overflow-hidden rounded-3xl bg-surface ring-1 ring-line dark:bg-primary-800 dark:ring-white/10 lg:grid-cols-2">
+      {/* Vente flash — affiché en haut sur mobile/tablette */}
+      <p className="eyebrow px-8 pt-8 sm:px-12 lg:hidden">Vente flash</p>
+
       {/* Visuel */}
-      <div className="relative flex items-center justify-center p-8 sm:p-12">
+      <div className="relative flex items-center justify-center px-8 pb-8 pt-4 sm:px-12 sm:pb-12 sm:pt-6 lg:p-12">
         <div className="pointer-events-none absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/10 blur-3xl" />
         <div className="relative w-full max-w-sm">
           <ProductMedia product={product} className="aspect-square rounded-2xl" />
@@ -21,7 +24,7 @@ export default function FeaturedProduct({ product }) {
 
       {/* Infos */}
       <div className="flex flex-col justify-center gap-5 p-8 sm:p-12 lg:p-16">
-        <p className="eyebrow">À la une</p>
+        <p className="eyebrow hidden lg:block">Vente flash</p>
         <h2 className="text-3xl font-extrabold tracking-tighter dark:text-white sm:text-4xl">
           {product.name}
         </h2>

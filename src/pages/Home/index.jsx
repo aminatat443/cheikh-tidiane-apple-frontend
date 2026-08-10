@@ -1,8 +1,9 @@
+import { Link } from 'react-router-dom';
+import { FiArrowRight } from 'react-icons/fi';
 import { useQuery } from '@tanstack/react-query';
 import Hero from '@/components/common/Hero';
 import SectionTitle from '@/components/common/SectionTitle';
 import Reveal from '@/components/common/Reveal';
-import FeatureStrip from '@/components/common/FeatureStrip';
 import LebalmaBand from '@/components/common/LebalmaBand';
 import ProductGrid from '@/components/product/ProductGrid';
 import FeaturedProduct from '@/components/product/FeaturedProduct';
@@ -27,11 +28,6 @@ export default function Home() {
     <>
       <Hero />
 
-      {/* Réassurance — bandeau fin sous le hero */}
-      <section className="container-page mt-6">
-        <FeatureStrip />
-      </section>
-
       {/* Derniers arrivages */}
       <Reveal as="section" className="container-page mt-20 sm:mt-24">
         <SectionTitle
@@ -41,9 +37,14 @@ export default function Home() {
           link="/products"
         />
         <ProductGrid products={latest?.data} isLoading={l1} />
+        {latest?.data?.length >= 8 && (
+          <div className="mt-8 text-center">
+            <Link to="/products" className="btn-outline">Voir plus <FiArrowRight size={15} /></Link>
+          </div>
+        )}
       </Reveal>
 
-      {/* Produit à la une */}
+      {/* Produit en vente flash */}
       {featured && (
         <Reveal as="section" className="container-page mt-20 sm:mt-24">
           <FeaturedProduct product={featured} />
@@ -64,6 +65,11 @@ export default function Home() {
           link="/products?isTopSale=true"
         />
         <ProductGrid products={topSales?.data} isLoading={l2} skeletonCount={4} />
+        {topSales?.data?.length >= 4 && (
+          <div className="mt-8 text-center">
+            <Link to="/products?isTopSale=true" className="btn-outline">Voir plus <FiArrowRight size={15} /></Link>
+          </div>
+        )}
       </Reveal>
 
       {/* Avis clients */}

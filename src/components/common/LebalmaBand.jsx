@@ -1,33 +1,25 @@
 import { Link } from 'react-router-dom';
 import { FiArrowRight } from 'react-icons/fi';
 
-/** Bandeau CTA Lebalma — dégradé premium, sans dépendance à une image. */
+/**
+ * Bandeau Lebalma = même visuel que le slider 2 du hero, adapté à l'écran.
+ * L'image n'est PAS cliquable — seul le bouton l'est.
+ */
 export default function LebalmaBand() {
   return (
-    <div className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-primary-950 via-primary to-accent-dark px-7 py-12 text-white sm:px-14 sm:py-16">
-      <span className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-accent/30 blur-3xl" />
-      <span className="pointer-events-none absolute inset-0 bg-grid-line bg-[size:44px_44px] opacity-[0.12]" />
-      <div className="relative max-w-xl">
-        <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/90 ring-1 ring-white/15 backdrop-blur">
-          Financement Lebalma
-        </span>
-        <h2 className="mt-4 text-3xl font-extrabold leading-[1.05] tracking-tight sm:text-4xl">
-          Prenez votre iPhone aujourd'hui,<br className="hidden sm:block" /> payez en plusieurs fois.
-        </h2>
-        <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-white/70">
-          Un acompte, puis des échéances par Wave, Orange Money ou carte.
-          L'appareil est à vous <span className="font-semibold text-white">dès l'acompte versé</span>.
-        </p>
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Link to="/lebalma" className="btn-light group">
-            Comment ça marche
-            <FiArrowRight className="transition-transform duration-300 group-hover:translate-x-1" />
-          </Link>
-          <Link to="/products?category=iphone" className="btn text-white ring-1 ring-white/25 hover:bg-white/10">
-            Voir les iPhone éligibles
-          </Link>
-        </div>
-      </div>
+    <div className="relative aspect-[4/5] overflow-hidden rounded-2xl shadow-card ring-1 ring-line/60 dark:ring-white/10 sm:aspect-[16/9] sm:rounded-3xl lg:aspect-[8/3]">
+      <picture>
+        <source media="(max-width: 639px)" srcSet="/hero/slider-2-mobile.png" />
+        <source media="(max-width: 1023px)" srcSet="/hero/slider-2-tablette.png" />
+        <img src="/hero/slider-2-desktop.png" alt="Financement Lebalma" className="absolute inset-0 h-full w-full object-cover" />
+      </picture>
+
+      {/* Voile bas + bouton (seul élément cliquable) */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/45 to-transparent" />
+      <Link to="/lebalma" className="btn-light group absolute bottom-6 left-7 sm:bottom-7 sm:left-16">
+        Comment ça marche
+        <FiArrowRight className="transition-transform duration-300 group-hover:translate-x-1" />
+      </Link>
     </div>
   );
 }
