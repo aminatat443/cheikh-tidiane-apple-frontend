@@ -15,7 +15,7 @@ import { productService } from '@/services/product.service';
 import { addItem } from '@/store/cartSlice';
 import { toggleFavorite } from '@/store/favoriteSlice';
 import { formatPrice, computeLebalma, cn } from '@/utils/format';
-import { productGallery } from '@/utils/media';
+import { productGallery, optimizeImage } from '@/utils/media';
 import { WHATSAPP_NUMBER } from '@/constants';
 
 const TRUST = [
@@ -119,8 +119,9 @@ export default function ProductDetails() {
             {images.length > 0 ? (
               <div className="aspect-square overflow-hidden rounded-3xl bg-surface shadow-card ring-1 ring-line/60 dark:bg-primary-800 dark:ring-white/10">
                 <img
-                  src={images[activeImg] || images[0]}
+                  src={optimizeImage(images[activeImg] || images[0], { width: 900 })}
                   alt={product.name}
+                  decoding="async"
                   className="h-full w-full object-cover transition-transform duration-700 ease-smooth group-hover:scale-105"
                 />
               </div>
@@ -179,7 +180,7 @@ export default function ProductDetails() {
                   )}
                   aria-label={`Photo ${i + 1}`}
                 >
-                  <img src={img} alt={`${product.name} ${i + 1}`} className="h-full w-full object-cover" />
+                  <img src={optimizeImage(img, { width: 160 })} alt={`${product.name} ${i + 1}`} loading="lazy" className="h-full w-full object-cover" />
                 </button>
               ))}
             </div>

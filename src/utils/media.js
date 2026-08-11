@@ -1,5 +1,34 @@
 import { IPHONE_IMAGES } from '@/constants';
 
+/**
+ * Optimise une URL Cloudinary À LA VOLÉE (sans re-téléverser l'image) :
+ * insère format & qualité automatiques (WebP/AVIF, compression), densité
+ * d'écran (Retina) et une largeur cible. Cloudinary génère la dérivée à la
+ * 1re requête puis la sert depuis son CDN (mise en cache).
+ * Les URL non-Cloudinary (placeholders locaux `/images/…`) sont renvoyées telles quelles.
+ * @param {string} url
+ * @param {{width?:number, height?:number, crop?:string}} opts
+ */
+export function optimizeImage(url, { width, height, crop = 'limit' } = {}) {
+  if (!url || typeof url !== 'string') return url;
+  if (!url.includes('res.cloudinary.com') || !url.includes('/upload/')) return url;
+  // Évite d'empiler nos transformations si l'URL en contient déjà une des nôtres.
+  if (/\/upload\/[^/]*f_auto/.test(url)) return url;
+  const t = ['f_auto', 'q_auto', 'dpr_auto', `c_${crop}`];
+  if (width) t.push(`w_${width}`);
+  if (height) t.push(`h_${height}`);
+  return url.replace('/upload/', `/upload/${t.join(',')}/`);
+}
+
+/**
+ * Construit un `srcSet` responsive pour une image Cloudinary (plusieurs largeurs).
+ * Renvoie `undefined` pour les URL non-Cloudinary (le navigateur utilise alors `src`).
+ */
+export function optimizedSrcSet(url, widths = [300, 400, 600, 800]) {
+  if (!url || typeof url !== 'string' || !url.includes('res.cloudinary.com')) return undefined;
+  return widths.map((w) => `${optimizeImage(url, { width: w })} ${w}w`).join(', ');
+}
+
 /** Vrai si le produit est un iPhone (par catégorie ou par nom/modèle). */
 function isIphone(product) {
   const slug = product?.category?.slug;

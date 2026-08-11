@@ -1,19 +1,25 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { FiSearch, FiPlus, FiMinus, FiTrash2, FiShoppingBag } from 'react-icons/fi';
+import { FiSearch, FiPlus, FiMinus, FiTrash2, FiShoppingBag, FiUser, FiCheckCircle, FiX } from 'react-icons/fi';
 import Modal from '@/components/ui/Modal';
 import { productService } from '@/services/product.service';
 import { adminService } from '@/services/admin.service';
 import { formatPrice } from '@/utils/format';
 import { POS_PAYMENT_METHODS } from '@/constants';
 
+const WALKIN_EMAIL = 'comptoir@cheikhtidiane.local';
 const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+
+const EMPTY_CUSTOMER = { name: '', phone: '', address: '', city: '' };
 
 /** Création d'une commande « sur place » (vente au comptoir). */
 export default function NewOrderModal({ open, onClose, onCreated }) {
   const [q, setQ] = useState('');
   const [lines, setLines] = useState({}); // { productId: { product, qty } }
-  const [customer, setCustomer] = useState({ name: '', phone: '' });
+  const [customer, setCustomer] = useState(EMPTY_CUSTOMER);
+  const [clientQ, setClientQ] = useState('');
+  const [selectedClientId, setSelectedClientId] = useState(null);
+  const [showClientList, setShowClientList] = useState(false);
   const [method, setMethod] = useState('cash');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -21,10 +27,22 @@ export default function NewOrderModal({ open, onClose, onCreated }) {
   const { data } = useQuery({ queryKey: ['pos-products'], queryFn: () => productService.list({ limit: 100 }), enabled: open });
   const products = data?.data || [];
 
+  // Clients existants (pour rattachement d'une vente au comptoir)
+  const { data: clientsData } = useQuery({ queryKey: ['admin', 'clients'], queryFn: () => adminService.clients(), enabled: open });
+  const clients = clientsData?.data || [];
+
   const results = useMemo(() => {
     const t = norm(q.trim());
     return (t ? products.filter((p) => norm(p.name).includes(t)) : products).slice(0, 8);
   }, [products, q]);
+
+  const clientResults = useMemo(() => {
+    const t = norm(clientQ.trim());
+    return clients
+      .filter((c) => c.email !== WALKIN_EMAIL)
+      .filter((c) => !t || norm(`${c.name} ${c.phone || ''} ${c.email || ''}`).includes(t))
+      .slice(0, 6);
+  }, [clients, clientQ]);
 
   const items = Object.values(lines);
   const total = items.reduce((s, it) => s + it.product.price * it.qty, 0);
@@ -36,18 +54,42 @@ export default function NewOrderModal({ open, onClose, onCreated }) {
       return { ...l, [id]: { ...l[id], qty } };
     });
 
+  function pickClient(c) {
+    setSelectedClientId(c.id);
+    setCustomer({ name: c.name || '', phone: c.phone || '', address: c.address || '', city: c.city || '' });
+    setClientQ('');
+    setShowClientList(false);
+    setError('');
+  }
+  function clearClient() {
+    setSelectedClientId(null);
+    setCustomer(EMPTY_CUSTOMER);
+  }
+
+  function reset() {
+    setLines({}); setCustomer(EMPTY_CUSTOMER); setQ(''); setMethod('cash');
+    setClientQ(''); setSelectedClientId(null); setShowClientList(false);
+  }
+
   async function submit() {
+    if (!customer.name.trim()) return setError('Le nom du client est obligatoire.');
     if (!items.length) return setError('Ajoutez au moins un article.');
     setBusy(true);
     setError('');
     try {
       await adminService.createOrder({
-        customer: { name: customer.name.trim(), phone: customer.phone.trim() },
+        userId: selectedClientId || undefined,
+        customer: {
+          name: customer.name.trim(),
+          phone: customer.phone.trim(),
+          address: customer.address.trim(),
+          city: customer.city.trim(),
+        },
         items: items.map((it) => ({ productId: it.product.id, quantity: it.qty })),
         paymentMethod: method,
         status: 'paid',
       });
-      setLines({}); setCustomer({ name: '', phone: '' }); setQ(''); setMethod('cash');
+      reset();
       onCreated?.();
     } catch (e) {
       setError(e.response?.data?.message || 'Création impossible.');
@@ -91,7 +133,7 @@ export default function NewOrderModal({ open, onClose, onCreated }) {
                       <span className="w-6 text-center dark:text-white">{it.qty}</span>
                       <button type="button" onClick={() => setQty(it.product.id, it.qty + 1)} className="grid h-7 w-7 place-items-center text-muted"><FiPlus size={12} /></button>
                     </div>
-                    <span className="w-20 shrink-0 text-right font-semibold dark:text-white">{formatPrice(it.product.price * it.qty)}</span>
+                    <span className="w-20 shrink-0 whitespace-nowrap text-right font-semibold dark:text-white">{formatPrice(it.product.price * it.qty)}</span>
                     <button type="button" onClick={() => setQty(it.product.id, 0)} className="grid h-7 w-7 shrink-0 place-items-center rounded text-muted hover:text-danger"><FiTrash2 size={13} /></button>
                   </div>
                 ))}
@@ -101,9 +143,55 @@ export default function NewOrderModal({ open, onClose, onCreated }) {
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <input className="input" placeholder="Nom du client (optionnel)" value={customer.name} onChange={(e) => setCustomer((c) => ({ ...c, name: e.target.value }))} />
-            <input className="input" placeholder="Téléphone (optionnel)" value={customer.phone} onChange={(e) => setCustomer((c) => ({ ...c, phone: e.target.value }))} />
+          {/* Client */}
+          <div>
+            <label className="label dark:text-white/80">Client</label>
+
+            {/* Recherche d'un client existant */}
+            <div className="relative">
+              <FiUser className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={16} />
+              <input
+                className="input pl-9"
+                placeholder="Rechercher un client existant…"
+                value={clientQ}
+                onChange={(e) => { setClientQ(e.target.value); setShowClientList(true); }}
+                onFocus={() => setShowClientList(true)}
+                onBlur={() => setTimeout(() => setShowClientList(false), 150)}
+              />
+              {showClientList && clientResults.length > 0 && (
+                <div className="absolute z-20 mt-1 max-h-52 w-full overflow-y-auto rounded-xl border border-line bg-white py-1 shadow-card dark:border-white/10 dark:bg-primary-800">
+                  {clientResults.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => pickClient(c)}
+                      className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm transition hover:bg-surface dark:hover:bg-white/5"
+                    >
+                      <span className="min-w-0 truncate font-medium dark:text-white">{c.name}</span>
+                      <span className="shrink-0 whitespace-nowrap text-xs text-muted">{c.phone || c.email}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {selectedClientId && (
+              <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1 text-xs font-semibold text-success">
+                <FiCheckCircle size={13} /> Client existant lié
+                <button type="button" onClick={clearClient} className="ml-0.5 text-success/80 hover:text-success" aria-label="Détacher le client"><FiX size={13} /></button>
+              </span>
+            )}
+
+            {/* Coordonnées (le nom est obligatoire) */}
+            <div className="mt-2 grid grid-cols-2 gap-3">
+              <input className="input" placeholder="Nom du client *" value={customer.name} onChange={(e) => setCustomer((c) => ({ ...c, name: e.target.value }))} />
+              <input className="input" placeholder="Téléphone" value={customer.phone} onChange={(e) => setCustomer((c) => ({ ...c, phone: e.target.value }))} />
+            </div>
+            <input className="input mt-3" placeholder="Adresse (optionnel)" value={customer.address} onChange={(e) => setCustomer((c) => ({ ...c, address: e.target.value }))} />
+            <p className="mt-1.5 text-xs text-muted">
+              Si le téléphone ou l'adresse correspond à un client du site, la commande lui sera automatiquement rattachée.
+            </p>
           </div>
 
           <div>
@@ -115,7 +203,7 @@ export default function NewOrderModal({ open, onClose, onCreated }) {
 
           <div className="flex items-center justify-between border-t border-line pt-3 dark:border-white/10">
             <span className="text-sm text-muted">Total</span>
-            <span className="text-xl font-extrabold dark:text-white">{formatPrice(total)}</span>
+            <span className="whitespace-nowrap text-xl font-extrabold dark:text-white">{formatPrice(total)}</span>
           </div>
 
           {error && <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p>}

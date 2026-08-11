@@ -18,15 +18,17 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Déconnecte automatiquement sur 401
+// Session invalide/expirée (401) : on nettoie le token et on retourne à l'ACCUEIL,
+// jamais vers /login (règle métier : une déconnexion mène toujours au site).
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
-      // Redirection douce (évite la boucle si déjà sur /login)
-      if (!window.location.pathname.startsWith('/login')) {
-        window.location.href = '/login';
+      // Le garde évite un rechargement inutile quand la déconnexion volontaire a
+      // déjà ramené l'utilisateur sur l'accueil (les 401 tardifs sont alors ignorés).
+      if (window.location.pathname !== '/') {
+        window.location.href = '/';
       }
     }
     return Promise.reject(error);

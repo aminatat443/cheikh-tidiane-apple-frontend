@@ -109,8 +109,11 @@ export const LEBALMA_PAY_METHODS = [
   { value: 'cash', label: 'Espèces (en boutique)' },
 ];
 
-// Logo de la boutique (PNG) — navbar, en-tête des factures, back-office
-export const SHOP_LOGO = '/images/cheikh-tidiane-apple.svg';
+// Logo officiel de la boutique — navbar, footer, back-office, factures.
+// Image « pleine » : logo blanc lumineux sur fond sombre (non transparent).
+//  • fonds sombres  → classe `mix-blend-screen` (le fond sombre disparaît, seul le logo ressort) ;
+//  • fonds clairs   → affiché tel quel (badge sombre + logo blanc, lisible).
+export const SHOP_LOGO = '/images/cheikh-tidiane-apple.png';
 
 // Coordonnées par défaut de la boutique (surchargées par les réglages admin)
 export const SHOP_DEFAULTS = {

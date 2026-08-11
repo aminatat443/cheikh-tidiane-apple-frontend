@@ -105,7 +105,7 @@ export default function Invoice() {
         {/* En-tête */}
         <div className="flex items-start justify-between gap-6 border-b-2 border-[#111827] pb-6">
           <div className="flex items-center gap-3">
-            <img src={SHOP_LOGO} alt={shop.name} className="h-14 w-auto" />
+            <img src={SHOP_LOGO} alt={shop.name} className="h-14 w-auto rounded-lg" />
             <div>
               <p className="text-lg font-extrabold leading-tight">{shop.name}</p>
               {shop.address && <p className="text-xs text-[#6B7280]">{shop.address}</p>}

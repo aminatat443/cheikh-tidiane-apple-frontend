@@ -1,5 +1,5 @@
 import DeviceIllustration from './DeviceIllustration';
-import { productPlaceholder } from '@/utils/media';
+import { productPlaceholder, optimizeImage, optimizedSrcSet } from '@/utils/media';
 import { cn } from '@/utils/format';
 
 /**
@@ -22,9 +22,12 @@ export default function ProductMedia({ product, className, imgClassName }) {
     <div className={cn('relative overflow-hidden', className)}>
       {image ? (
         <img
-          src={image}
+          src={optimizeImage(image, { width: 600 })}
+          srcSet={optimizedSrcSet(image)}
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           alt={product.name}
           loading="lazy"
+          decoding="async"
           className={cn('h-full w-full object-cover', imgClassName)}
         />
       ) : (

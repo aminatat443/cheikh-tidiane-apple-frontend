@@ -8,7 +8,9 @@ export default function ProtectedRoute({ adminOnly = false }) {
   const { isAuthenticated, user } = useSelector((s) => s.auth);
   const token = localStorage.getItem('token');
 
-  if (!token && !isAuthenticated) return <Navigate to="/login" replace />;
+  // Accès non authentifié : retour à l'accueil (jamais /login, qui reste
+  // accessible via le bouton « Se connecter »).
+  if (!token && !isAuthenticated) return <Navigate to="/" replace />;
 
   // Session en cours de restauration (token présent mais profil pas encore chargé)
   if (token && !user) return <Loader />;

@@ -4,7 +4,11 @@
  */
 export function formatPrice(amount) {
   if (amount == null || Number.isNaN(Number(amount))) return '—';
-  return `${Number(amount).toLocaleString('fr-FR')} FCFA`;
+  // Espaces insécables (U+00A0) partout : ni le montant ni « FCFA » ne doivent
+  // jamais être coupés sur deux lignes (ex. « 151 000 FCFA » reste d'un bloc).
+  const NBSP = String.fromCharCode(160);
+  const number = Number(amount).toLocaleString('fr-FR').replace(/\s/g, NBSP);
+  return `${number}${NBSP}FCFA`;
 }
 
 /** Concatène des classes conditionnelles. */

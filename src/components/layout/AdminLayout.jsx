@@ -77,8 +77,8 @@ export default function AdminLayout() {
 
       {/* Marque */}
       <Link to="/admin" className="relative flex items-center gap-3 px-5 py-5" onClick={() => setOpen(false)}>
-        <span className="grid h-11 w-11 place-items-center rounded-2xl bg-white/10 p-1.5 ring-1 ring-white/10 backdrop-blur">
-          <img src={SHOP_LOGO} alt="Cheikh Tidiane Apple" className="h-full w-auto" />
+        <span className="grid h-11 place-items-center">
+          <img src={SHOP_LOGO} alt="Cheikh Tidiane Apple" className="h-11 w-auto rounded-lg" />
         </span>
         <span className="leading-tight">
           <span className="block text-sm font-bold tracking-tight text-white">Cheikh Tidiane</span>

@@ -114,8 +114,8 @@ export default function Settings() {
 
       {/* Aperçu logo */}
       <div className="card mt-6 flex items-center gap-4 p-6">
-        <img src={SHOP_LOGO} alt="Logo" className="h-12 w-auto" />
-        <p className="text-sm text-muted">Logo de la boutique (<code>public/images/cheikh-tidiane-apple.svg</code>).</p>
+        <img src={SHOP_LOGO} alt="Logo" className="h-12 w-auto rounded-lg" />
+        <p className="text-sm text-muted">Logo de la boutique (<code>public/images/cheikh-tidiane-apple.png</code>).</p>
       </div>
 
       <div className="mt-6 flex items-center gap-3">

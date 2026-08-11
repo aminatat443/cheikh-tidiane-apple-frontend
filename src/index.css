@@ -199,6 +199,8 @@
 /* Tables admin : survol raffiné (teinte d'accent + barre à gauche) */
 .admin-scope thead th {
   letter-spacing: 0.04em;
+  /* Un en-tête ne doit jamais être coupé sur deux lignes (ex. « MODE DE PAIEMENT »). */
+  white-space: nowrap;
 }
 .admin-scope tbody tr {
   transition: background-color 0.15s ease;

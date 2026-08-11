@@ -260,8 +260,8 @@ export default function Navbar() {
 function BrandLogo() {
   return (
     <Link to="/" className="flex shrink-0 items-center" aria-label="Cheikh Tidiane — Accueil">
-      {/* bg-white : le logo étant un « découpage » sur fond noir, on éclaire les trous pour qu'il soit net */}
-      <img src={SHOP_LOGO} alt="Cheikh Tidiane Apple" className="h-10 w-auto rounded-lg bg-white sm:h-14" />
+      {/* Le fond du logo est déjà #111827 (identique à la navbar) → affiché tel quel, fondu parfait */}
+      <img src={SHOP_LOGO} alt="Cheikh Tidiane Apple" className="h-10 w-auto sm:h-14" />
     </Link>
   );
 }
