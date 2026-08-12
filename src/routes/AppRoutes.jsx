@@ -10,6 +10,9 @@ import Cart from '@/pages/Cart';
 import Checkout from '@/pages/Checkout';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
+import ForgotPassword from '@/pages/ForgotPassword';
+import ResetPassword from '@/pages/ResetPassword';
+import VerifyEmail from '@/pages/VerifyEmail';
 import Profile from '@/pages/Profile';
 import Orders from '@/pages/Orders';
 import Returns from '@/pages/Returns';
@@ -53,6 +56,9 @@ export default function AppRoutes() {
         <Route path="cart" element={<Cart />} />
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
+        <Route path="mot-de-passe-oublie" element={<ForgotPassword />} />
+        <Route path="reinitialiser-mot-de-passe" element={<ResetPassword />} />
+        <Route path="verifier-email" element={<VerifyEmail />} />
 
         {/* Protégé (connecté) */}
         <Route element={<ProtectedRoute />}>

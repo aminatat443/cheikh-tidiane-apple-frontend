@@ -1,8 +1,10 @@
 import { useState, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { FiShield, FiArrowLeft } from 'react-icons/fi';
 import { login, register as registerThunk, googleLogin, verifyTwoFactor, enrollVerifyTwoFactor } from '@/store/authSlice';
 import { authService } from '@/services/auth.service';
+import { useAuthModal } from '@/context/AuthModalContext';
 import { GOOGLE_CLIENT_ID } from '@/constants';
 import GoogleButton from './GoogleButton';
 
@@ -14,9 +16,10 @@ import GoogleButton from './GoogleButton';
  */
 export default function AuthForm({ initialMode = 'login', onSuccess }) {
   const dispatch = useDispatch();
+  const { closeAuth } = useAuthModal() || {};
   const [mode, setMode] = useState(initialMode);
   const [step, setStep] = useState('form'); // 'form' | 'twofa'
-  const [f, setF] = useState({ name: '', email: '', phone: '', password: '' });
+  const [f, setF] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
   const [code, setCode] = useState('');
   const [tempToken, setTempToken] = useState(null);
   const [enroll, setEnroll] = useState(null); // { qr, secret }
@@ -60,6 +63,7 @@ export default function AuthForm({ initialMode = 'login', onSuccess }) {
     if (!f.email || !f.password) return setError('Email et mot de passe requis');
     if (!isLogin && !f.name) return setError('Nom requis');
     if (!isLogin && f.password.length < 6) return setError('Mot de passe : 6 caractères minimum');
+    if (!isLogin && f.password !== f.confirmPassword) return setError('Les mots de passe ne correspondent pas');
     setLoading(true);
     try {
       const result = isLogin
@@ -226,6 +230,20 @@ export default function AuthForm({ initialMode = 'login', onSuccess }) {
           <input className="input" placeholder="Téléphone (optionnel)" value={f.phone} onChange={(e) => set({ phone: e.target.value })} />
         )}
         <input className="input" type="password" placeholder="Mot de passe" value={f.password} onChange={(e) => set({ password: e.target.value })} />
+        {!isLogin && (
+          <input className="input" type="password" placeholder="Confirmer le mot de passe" value={f.confirmPassword} onChange={(e) => set({ confirmPassword: e.target.value })} />
+        )}
+        {isLogin && (
+          <div className="-mt-1 text-right">
+            <Link
+              to="/mot-de-passe-oublie"
+              onClick={() => closeAuth?.()}
+              className="text-sm font-semibold text-accent hover:underline"
+            >
+              Mot de passe oublié ?
+            </Link>
+          </div>
+        )}
         {error && <p className="text-sm text-danger">{error}</p>}
         <button type="submit" disabled={loading} className="btn-primary w-full">
           {loading ? '…' : isLogin ? 'Se connecter' : "S'inscrire"}

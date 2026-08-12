@@ -6,6 +6,12 @@ export const authService = {
   // Chemin « /auth/social » (et non « /google ») pour ne pas être bloqué par les bloqueurs de pub.
   google: (credential) => api.post('/auth/social', { credential }).then((r) => r.data),
   me: () => api.get('/auth/me').then((r) => r.data),
+  // Vérification d'e-mail (à l'inscription)
+  verifyEmail: (token) => api.post('/auth/verify-email', { token }).then((r) => r.data),
+  resendVerification: () => api.post('/auth/resend-verification').then((r) => r.data),
+  // Mot de passe oublié / réinitialisation
+  forgotPassword: (email) => api.post('/auth/forgot-password', { email }).then((r) => r.data),
+  resetPassword: (token, password) => api.post('/auth/reset-password', { token, password }).then((r) => r.data),
   // Double authentification (2FA / TOTP)
   verify2fa: (payload) => api.post('/auth/2fa/verify', payload).then((r) => r.data),
   // Enrôlement 2FA à la connexion (jeton temporaire) — admins
