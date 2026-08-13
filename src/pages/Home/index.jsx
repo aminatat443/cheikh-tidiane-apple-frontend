@@ -74,7 +74,6 @@ export default function Home() {
 
       {/* Avis clients */}
       <Reveal as="section" className="container-page mt-20 sm:mt-24">
-        <SectionTitle eyebrow="Avis clients" title="Ils nous font confiance" />
         <Testimonials />
       </Reveal>
 

@@ -1,6 +1,12 @@
 export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
 
+// URL publique du site (pour les liens partagés, ex. message WhatsApp).
+// Prend VITE_CLIENT_URL si défini, sinon l'origine réelle de la page.
+export const SITE_URL =
+  import.meta.env.VITE_CLIENT_URL ||
+  (typeof window !== 'undefined' ? window.location.origin : 'https://cheikhtidiane.netlify.app');
+
 // ID client Google (OAuth 2.0, type Web). Vide = bouton Google masqué.
 export const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 

@@ -16,14 +16,26 @@ export default function Testimonials() {
 
   return (
     <>
+      {/* En-tête : titre à gauche, « Donner mon avis » en haut à droite */}
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <p className="eyebrow mb-2">Avis clients</p>
+          <h2 className="text-2xl font-extrabold tracking-tighter dark:text-white sm:text-3xl">
+            Ils nous font confiance
+          </h2>
+        </div>
+        <button onClick={() => setOpen(true)} className="btn-primary shrink-0 whitespace-nowrap">
+          <FiEdit3 size={16} />
+          <span className="hidden sm:inline">Donner mon avis</span>
+          <span className="sm:hidden">Mon avis</span>
+        </button>
+      </div>
+
       <div className="grid gap-5 md:grid-cols-3">
         {items.map((r, i) => <ReviewCard key={`${r.name}-${i}`} {...r} />)}
       </div>
 
-      <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-        <button onClick={() => setOpen(true)} className="btn-primary">
-          <FiEdit3 size={16} /> Donner mon avis
-        </button>
+      <div className="mt-8 flex justify-center">
         <Link to="/avis" className="btn-outline">
           Voir tous les avis <FiArrowRight size={15} />
         </Link>

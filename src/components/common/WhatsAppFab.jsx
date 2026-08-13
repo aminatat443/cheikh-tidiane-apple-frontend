@@ -1,13 +1,14 @@
 import { FaWhatsapp } from 'react-icons/fa';
-import { WHATSAPP_NUMBER } from '@/constants';
+import { WHATSAPP_NUMBER, SITE_URL } from '@/constants';
 
 /**
  * Bouton WhatsApp flottant (coin bas-droite), présent sur toutes les pages
- * boutique. Ouvre une conversation WhatsApp avec le numéro de la boutique.
+ * boutique. Ouvre une conversation WhatsApp avec le numéro de la boutique,
+ * en incluant le lien du site dans le message.
  */
 export default function WhatsAppFab() {
   const link = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-    'Bonjour, je vous contacte depuis la boutique Cheikh Tidiane Apple.'
+    `Bonjour, je vous contacte depuis votre boutique Cheikh Tidiane Apple : ${SITE_URL}`
   )}`;
 
   return (
