@@ -1,10 +1,8 @@
 import { useState, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
-import { Link } from 'react-router-dom';
-import { FiShield, FiArrowLeft } from 'react-icons/fi';
+import { FiShield, FiArrowLeft, FiMail, FiCheckCircle } from 'react-icons/fi';
 import { login, register as registerThunk, googleLogin, verifyTwoFactor, enrollVerifyTwoFactor } from '@/store/authSlice';
 import { authService } from '@/services/auth.service';
-import { useAuthModal } from '@/context/AuthModalContext';
 import { GOOGLE_CLIENT_ID } from '@/constants';
 import GoogleButton from './GoogleButton';
 
@@ -16,9 +14,9 @@ import GoogleButton from './GoogleButton';
  */
 export default function AuthForm({ initialMode = 'login', onSuccess }) {
   const dispatch = useDispatch();
-  const { closeAuth } = useAuthModal() || {};
-  const [mode, setMode] = useState(initialMode);
-  const [step, setStep] = useState('form'); // 'form' | 'twofa'
+  // 'forgot' comme mode initial → on ouvre directement l'étape « mot de passe oublié ».
+  const [mode, setMode] = useState(initialMode === 'forgot' ? 'login' : initialMode);
+  const [step, setStep] = useState(initialMode === 'forgot' ? 'forgot' : 'form'); // 'form' | 'twofa' | 'setup' | 'forgot'
   const [f, setF] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
   const [code, setCode] = useState('');
   const [tempToken, setTempToken] = useState(null);
@@ -26,6 +24,7 @@ export default function AuthForm({ initialMode = 'login', onSuccess }) {
   const [setupLoading, setSetupLoading] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
 
   const set = (patch) => { setF((p) => ({ ...p, ...patch })); setError(''); };
   const isLogin = mode === 'login';
@@ -72,6 +71,21 @@ export default function AuthForm({ initialMode = 'login', onSuccess }) {
       finish(result);
     } catch (err) {
       setError(err.message || (isLogin ? 'Identifiants incorrects' : 'Inscription impossible'));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function submitForgot(e) {
+    e.preventDefault();
+    setError('');
+    if (!f.email.trim()) return setError('Entrez votre adresse e-mail.');
+    setLoading(true);
+    try {
+      await authService.forgotPassword(f.email.trim());
+      setForgotSent(true);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Une erreur est survenue.');
     } finally {
       setLoading(false);
     }
@@ -169,6 +183,62 @@ export default function AuthForm({ initialMode = 'login', onSuccess }) {
     );
   }
 
+  // ---- Étape « mot de passe oublié » (flottante, dans la modale) ----
+  if (step === 'forgot') {
+    return (
+      <div>
+        {forgotSent ? (
+          <div className="text-center">
+            <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-success/10 text-success">
+              <FiCheckCircle size={24} />
+            </div>
+            <h2 className="text-xl font-extrabold dark:text-white">Vérifiez votre boîte mail</h2>
+            <p className="mt-2 text-sm text-muted">
+              Si un compte existe pour <strong className="text-primary dark:text-white">{f.email}</strong>, vous recevrez
+              un lien pour réinitialiser votre mot de passe. Pensez à vérifier vos spams.
+            </p>
+            <button
+              onClick={() => { setStep('form'); setForgotSent(false); setError(''); }}
+              className="btn-primary mt-6 w-full"
+            >
+              Retour à la connexion
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-accent-light text-accent">
+              <FiMail size={22} />
+            </div>
+            <h2 className="text-xl font-extrabold dark:text-white">Mot de passe oublié</h2>
+            <p className="mt-1 text-sm text-muted">
+              Entrez l'adresse e-mail de votre compte : nous vous enverrons un lien de réinitialisation.
+            </p>
+            <form onSubmit={submitForgot} className="mt-5 space-y-4">
+              <input
+                className="input"
+                type="email"
+                placeholder="Votre e-mail"
+                value={f.email}
+                onChange={(e) => set({ email: e.target.value })}
+                autoFocus
+              />
+              {error && <p className="text-sm text-danger">{error}</p>}
+              <button type="submit" disabled={loading} className="btn-primary w-full">
+                {loading ? 'Envoi…' : 'Envoyer le lien'}
+              </button>
+            </form>
+            <button
+              onClick={() => { setStep('form'); setError(''); }}
+              className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-muted hover:text-primary dark:hover:text-white"
+            >
+              <FiArrowLeft size={14} /> Retour à la connexion
+            </button>
+          </>
+        )}
+      </div>
+    );
+  }
+
   // ---- Étape 2FA ----
   if (step === 'twofa') {
     return (
@@ -235,13 +305,13 @@ export default function AuthForm({ initialMode = 'login', onSuccess }) {
         )}
         {isLogin && (
           <div className="-mt-1 text-right">
-            <Link
-              to="/mot-de-passe-oublie"
-              onClick={() => closeAuth?.()}
+            <button
+              type="button"
+              onClick={() => { setStep('forgot'); setForgotSent(false); setError(''); }}
               className="text-sm font-semibold text-accent hover:underline"
             >
               Mot de passe oublié ?
-            </Link>
+            </button>
           </div>
         )}
         {error && <p className="text-sm text-danger">{error}</p>}

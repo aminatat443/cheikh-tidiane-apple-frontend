@@ -12,6 +12,11 @@
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    /* Échelle FLUIDE globale : la taille de police racine diminue progressivement
+       quand l'écran rétrécit. Comme Tailwind exprime polices, paddings, marges,
+       gaps et tailles en rem, TOUT le site (toutes les pages) se réduit
+       proportionnellement sur tablette puis mobile. 16px ≥1024px → ~13.5px à 320px. */
+    font-size: clamp(13.5px, 12.4px + 0.35vw, 16px);
   }
   body {
     @apply bg-white text-primary font-sans transition-colors duration-300 dark:bg-primary-950 dark:text-primary-100;

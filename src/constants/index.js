@@ -4,9 +4,9 @@ export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5
 // ID client Google (OAuth 2.0, type Web). Vide = bouton Google masqué.
 export const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
-// ⚠️ Numéro WhatsApp de la boutique — format international SANS le "+" ni espaces.
-// Remplacez par le vrai numéro (ex. Sénégal : 221XXXXXXXXX).
-export const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER || '221770000000';
+// Numéro WhatsApp de la boutique — format international SANS le "+" ni espaces.
+// Sénégal : 221 + numéro local (77 231 42 70 → 221772314270).
+export const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER || '221772314270';
 
 // Photos d'iPhone (rouge, blanc, orange), alternées sur les fiches iPhone
 // en attendant les vraies photos par produit. Uniquement pour les iPhones.

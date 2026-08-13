@@ -8,9 +8,7 @@ import Products from '@/pages/Products';
 import ProductDetails from '@/pages/ProductDetails';
 import Cart from '@/pages/Cart';
 import Checkout from '@/pages/Checkout';
-import Login from '@/pages/Login';
-import Register from '@/pages/Register';
-import ForgotPassword from '@/pages/ForgotPassword';
+import AuthGate from '@/components/auth/AuthGate';
 import ResetPassword from '@/pages/ResetPassword';
 import VerifyEmail from '@/pages/VerifyEmail';
 import Profile from '@/pages/Profile';
@@ -54,9 +52,11 @@ export default function AppRoutes() {
         <Route path="avis" element={<Avis />} />
         <Route path="contact" element={<Contact />} />
         <Route path="cart" element={<Cart />} />
-        <Route path="login" element={<Login />} />
-        <Route path="register" element={<Register />} />
-        <Route path="mot-de-passe-oublie" element={<ForgotPassword />} />
+        {/* Auth FLOTTANTE : ces routes ouvrent la modale par-dessus l'accueil */}
+        <Route path="login" element={<AuthGate mode="login" />} />
+        <Route path="register" element={<AuthGate mode="register" />} />
+        <Route path="mot-de-passe-oublie" element={<AuthGate mode="forgot" />} />
+        {/* Pages atteintes via un lien e-mail (jeton dans l'URL) → restent des pages */}
         <Route path="reinitialiser-mot-de-passe" element={<ResetPassword />} />
         <Route path="verifier-email" element={<VerifyEmail />} />
 

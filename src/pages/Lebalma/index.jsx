@@ -50,18 +50,28 @@ export default function Lebalma() {
 
   return (
     <div className="container-page py-8 sm:py-10">
-      {/* En-tête */}
-      <section className="relative isolate overflow-hidden rounded-3xl bg-primary px-7 py-16 text-white sm:px-16 sm:py-24">
-        <div className="pointer-events-none absolute inset-0 bg-grid-line bg-[size:44px_44px] opacity-25" />
-        <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-accent/25 blur-3xl" />
-        <div className="relative max-w-2xl">
-          <p className="eyebrow">Financement</p>
-          <h1 className="mt-4 text-4xl font-extrabold tracking-tightest sm:text-6xl">Lebalma</h1>
-          <p className="mt-5 max-w-lg text-lg text-white/75">
+      {/* En-tête — bannière responsive (mobile / tablette / desktop). L'image
+          n'est PAS cliquable ; seuls les boutons le sont. */}
+      <section className="relative isolate flex flex-col justify-between overflow-hidden rounded-3xl bg-primary px-7 py-10 text-white aspect-[5/8] sm:aspect-[12/7] sm:justify-center sm:px-14 sm:py-12 lg:aspect-[19/7] lg:px-16">
+        <picture className="absolute inset-0 -z-10">
+          <source media="(max-width: 639px)" srcSet="/images/lebalma-mobile.png" />
+          <source media="(max-width: 1023px)" srcSet="/images/lebalma-tablette.png" />
+          <img src="/images/lebalma-desktop.png" alt="" className="h-full w-full object-cover" />
+        </picture>
+        {/* Voile lisibilité : mobile = haut (eyebrow) + bas (texte) ; desktop = gauche */}
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-primary/60 via-transparent to-primary/90 sm:bg-gradient-to-r sm:from-primary/80 sm:via-primary/30 sm:to-transparent" />
+
+        {/* FINANCEMENT — en haut sur mobile */}
+        <p className="eyebrow relative">Financement</p>
+
+        {/* Titre + texte + boutons — en BAS sur mobile, groupé au centre-gauche dès la tablette */}
+        <div className="relative max-w-lg sm:mt-3">
+          <h1 className="text-4xl font-extrabold tracking-tightest sm:text-5xl lg:text-6xl">Lebalma</h1>
+          <p className="mt-3 max-w-md text-base text-white/80 sm:mt-4 sm:text-lg">
             Achetez votre iPhone et payez en plusieurs fois. Un acompte, votre appareil tout de
             suite, le reste à votre rythme.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-5 flex flex-wrap gap-3 sm:mt-6">
             <Link to="/products?lebalma=true" className="btn-light group">
               Voir les produits éligibles
               <FiArrowRight className="transition-transform duration-300 group-hover:translate-x-1" />
@@ -135,42 +145,44 @@ export default function Lebalma() {
       </Reveal>
 
       {/* Exemple chiffré */}
-      <Reveal as="section" className="mt-20">
+      <Reveal as="section" className="mt-16 sm:mt-20">
         <div className="overflow-hidden rounded-3xl bg-surface ring-1 ring-line dark:bg-primary-800 dark:ring-white/10">
-          <div className="grid gap-8 p-8 sm:p-12 lg:grid-cols-2 lg:items-center">
-            <div className="flex items-center gap-5 sm:gap-7">
+          <div className="grid gap-8 p-6 sm:p-10 lg:grid-cols-2 lg:items-center lg:p-12">
+            {/* Produit : empilé + centré sur mobile, en ligne + aligné à gauche dès la tablette */}
+            <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:gap-7 sm:text-left">
               <img
                 src="/images/iphone-1.png"
                 alt="iPhone"
-                className="h-36 w-auto shrink-0 drop-shadow-xl sm:h-48"
+                className="h-28 w-auto shrink-0 drop-shadow-xl sm:h-44 lg:h-48"
                 loading="lazy"
               />
               <div>
-              <p className="eyebrow">Exemple</p>
-              <h2 className="mt-2 text-2xl font-extrabold tracking-tighter dark:text-white sm:text-3xl">
-                iPhone 14 Simple · 128 Go
-              </h2>
-              <p className="mt-3 text-muted">
-                Prix {formatPrice(EX_PRICE)}. Vous réglez {formatPrice(EX_DOWN)} d’acompte (60 %),
-                puis 6 mensualités de <span className="font-semibold text-accent">{formatPrice(EX_MONTHLY)}</span>.
-              </p>
-              <Link to="/products?lebalma=true" className="btn-primary mt-6">
-                Choisir mon iPhone <FiArrowRight />
-              </Link>
+                <p className="eyebrow">Exemple</p>
+                <h2 className="mt-2 text-xl font-extrabold tracking-tighter dark:text-white sm:text-2xl lg:text-3xl">
+                  iPhone 14 Simple · 128 Go
+                </h2>
+                <p className="mt-3 text-sm text-muted sm:text-base">
+                  Prix {formatPrice(EX_PRICE)}. Vous réglez {formatPrice(EX_DOWN)} d’acompte (60 %),
+                  puis 6 mensualités de <span className="font-semibold text-accent">{formatPrice(EX_MONTHLY)}</span>.
+                </p>
+                <Link to="/products?lebalma=true" className="btn-primary mt-6 whitespace-nowrap">
+                  Choisir mon iPhone <FiArrowRight />
+                </Link>
               </div>
             </div>
+            {/* Récap chiffré */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-2xl bg-white p-5 text-center ring-1 ring-line dark:bg-primary-900 dark:ring-white/10">
+              <div className="rounded-2xl bg-white p-4 text-center ring-1 ring-line dark:bg-primary-900 dark:ring-white/10 sm:p-5">
                 <p className="text-xs text-muted">Acompte (60 %)</p>
-                <p className="mt-1 text-xl font-extrabold dark:text-white">{formatPrice(EX_DOWN)}</p>
+                <p className="mt-1 whitespace-nowrap text-lg font-extrabold dark:text-white sm:text-xl">{formatPrice(EX_DOWN)}</p>
               </div>
-              <div className="rounded-2xl bg-white p-5 text-center ring-1 ring-line dark:bg-primary-900 dark:ring-white/10">
+              <div className="rounded-2xl bg-white p-4 text-center ring-1 ring-line dark:bg-primary-900 dark:ring-white/10 sm:p-5">
                 <p className="text-xs text-muted">Mensualité</p>
-                <p className="mt-1 text-xl font-extrabold text-accent">{formatPrice(EX_MONTHLY)}</p>
+                <p className="mt-1 whitespace-nowrap text-lg font-extrabold text-accent sm:text-xl">{formatPrice(EX_MONTHLY)}</p>
               </div>
-              <div className="col-span-2 rounded-2xl bg-white p-5 text-center ring-1 ring-line dark:bg-primary-900 dark:ring-white/10">
+              <div className="col-span-2 rounded-2xl bg-white p-4 text-center ring-1 ring-line dark:bg-primary-900 dark:ring-white/10 sm:p-5">
                 <p className="text-xs text-muted">Durée</p>
-                <p className="mt-1 text-xl font-extrabold dark:text-white">6 mois</p>
+                <p className="mt-1 text-lg font-extrabold dark:text-white sm:text-xl">6 mois</p>
               </div>
             </div>
           </div>
