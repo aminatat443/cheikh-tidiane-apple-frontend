@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  FiHeart, FiShoppingBag, FiChevronRight, FiChevronLeft, FiCheck, FiTruck, FiShield, FiLock, FiPhone, FiBell,
+  FiHeart, FiShoppingBag, FiChevronRight, FiChevronLeft, FiCheck, FiTruck, FiShield, FiLock, FiPhone, FiBell, FiZoomIn, FiX,
 } from 'react-icons/fi';
 import { FaWhatsapp } from 'react-icons/fa';
 import Loader from '@/components/ui/Loader';
@@ -15,7 +15,7 @@ import { productService } from '@/services/product.service';
 import { addItem } from '@/store/cartSlice';
 import { toggleFavorite } from '@/store/favoriteSlice';
 import { formatPrice, computeLebalma, cn } from '@/utils/format';
-import { productGallery, optimizeImage } from '@/utils/media';
+import { productGallery } from '@/utils/media';
 import { WHATSAPP_NUMBER } from '@/constants';
 
 const TRUST = [
@@ -34,6 +34,7 @@ export default function ProductDetails() {
   const [color, setColor] = useState(null);
   const [storage, setStorage] = useState(null);
   const [activeImg, setActiveImg] = useState(0);
+  const [zoom, setZoom] = useState(false);
   const [condition, setCondition] = useState('reconditionne');
   const [alertState, setAlertState] = useState('idle'); // idle | sending | done | error
 
@@ -119,10 +120,11 @@ export default function ProductDetails() {
             {images.length > 0 ? (
               <div className="aspect-square overflow-hidden rounded-3xl bg-surface shadow-card ring-1 ring-line/60 dark:bg-primary-800 dark:ring-white/10">
                 <img
-                  src={optimizeImage(images[activeImg] || images[0], { width: 900 })}
+                  src={images[activeImg] || images[0]}
                   alt={product.name}
                   decoding="async"
-                  className="h-full w-full object-cover transition-transform duration-700 ease-smooth group-hover:scale-105"
+                  onClick={() => setZoom(true)}
+                  className="h-full w-full cursor-zoom-in object-cover transition-transform duration-700 ease-smooth group-hover:scale-105"
                 />
               </div>
             ) : (
@@ -136,6 +138,41 @@ export default function ProductDetails() {
                 <span className="rounded-full bg-danger px-3 py-1 text-[11px] font-bold text-white shadow-soft">−{discount}%</span>
               )}
             </div>
+
+            {/* Loupe → zoom plein écran */}
+            {images.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setZoom(true)}
+                aria-label="Agrandir l'image"
+                className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 text-primary shadow-card backdrop-blur transition hover:bg-white hover:text-accent dark:bg-primary-900/80 dark:text-white"
+              >
+                <FiZoomIn size={17} />
+              </button>
+            )}
+            {zoom && images.length > 0 && (
+              <div
+                className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
+                onClick={() => setZoom(false)}
+                role="dialog"
+                aria-modal="true"
+              >
+                <button
+                  type="button"
+                  onClick={() => setZoom(false)}
+                  aria-label="Fermer"
+                  className="absolute right-4 top-4 grid h-11 w-11 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
+                >
+                  <FiX size={22} />
+                </button>
+                <img
+                  src={images[activeImg] || images[0]}
+                  alt={product.name}
+                  onClick={(e) => e.stopPropagation()}
+                  className="max-h-[90vh] max-w-[92vw] rounded-2xl object-contain"
+                />
+              </div>
+            )}
 
             {/* Flèches de défilement des photos (conditionnelles) */}
             {images.length > 1 && (
@@ -180,7 +217,7 @@ export default function ProductDetails() {
                   )}
                   aria-label={`Photo ${i + 1}`}
                 >
-                  <img src={optimizeImage(img, { width: 160 })} alt={`${product.name} ${i + 1}`} loading="lazy" className="h-full w-full object-cover" />
+                  <img src={img} alt={`${product.name} ${i + 1}`} loading="lazy" className="h-full w-full object-cover" />
                 </button>
               ))}
             </div>

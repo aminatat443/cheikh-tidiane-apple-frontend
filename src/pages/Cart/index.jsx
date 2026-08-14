@@ -3,7 +3,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import { FiTrash2 } from 'react-icons/fi';
 import { updateQuantity, removeItem, selectCartTotal } from '@/store/cartSlice';
 import { formatPrice } from '@/utils/format';
-import { optimizeImage } from '@/utils/media';
 
 export default function Cart() {
   const dispatch = useDispatch();
@@ -29,7 +28,7 @@ export default function Cart() {
             <div key={`${it.product.id}-${it.color}-${it.storage}`} className="card flex items-center gap-4 p-4">
               <div className="h-20 w-20 overflow-hidden rounded-lg bg-surface">
                 {it.product.images?.[0] && (
-                  <img src={optimizeImage(it.product.images[0], { width: 160 })} alt={it.product.name} loading="lazy" className="h-full w-full object-cover" />
+                  <img src={it.product.images[0]} alt={it.product.name} loading="lazy" className="h-full w-full object-cover" />
                 )}
               </div>
               <div className="flex-1">

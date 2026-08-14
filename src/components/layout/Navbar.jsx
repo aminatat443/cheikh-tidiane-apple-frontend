@@ -146,7 +146,7 @@ export default function Navbar() {
                   {isDark ? <FiSun size={19} /> : <FiMoon size={19} />}
                 </button>
                 {!admin && <CountIcon onClick={() => openDrawer('favorites')} icon={FiHeart} count={favCount} label="Favoris" />}
-                <CountIcon onClick={() => openDrawer('cart')} icon={FiShoppingBag} count={cartCount} label="Panier" />
+                {!admin && <CountIcon onClick={() => openDrawer('cart')} icon={FiShoppingBag} count={cartCount} label="Panier" />}
                 {isAuthenticated && <NotificationBell variant="onDark" />}
 
                 {isAuthenticated ? (
@@ -191,7 +191,7 @@ export default function Navbar() {
               {/* Mobile : favoris + panier + compte (profil en dernier) */}
               <div className="flex items-center gap-0.5 lg:hidden">
                 {!admin && <CountIcon onClick={() => openDrawer('favorites')} icon={FiHeart} count={favCount} label="Favoris" />}
-                <CountIcon onClick={() => openDrawer('cart')} icon={FiShoppingBag} count={cartCount} label="Panier" />
+                {!admin && <CountIcon onClick={() => openDrawer('cart')} icon={FiShoppingBag} count={cartCount} label="Panier" />}
                 <button
                   onClick={() => (isAuthenticated ? navigate('/profile') : openAuth('login'))}
                   className={iconBtnCls}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FiPlus, FiTrash2, FiUploadCloud, FiX } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiUploadCloud, FiX, FiChevronLeft, FiChevronRight, FiStar } from 'react-icons/fi';
 import { adminService } from '@/services/admin.service';
 import { cn } from '@/utils/format';
 
@@ -70,11 +70,21 @@ export default function ProductForm({ product, categories = [], onClose, onSaved
     set({ colors: f.colors.map((c, idx) => (idx === i ? { ...c, ...patch } : c)) });
   const rmColor = (i) => set({ colors: f.colors.filter((_, idx) => idx !== i) });
 
+  // Validation côté client avant envoi (Cloudinary optimise ensuite le reste).
+  const MAX_UPLOAD = 10 * 1024 * 1024; // 10 Mo
+  const OK_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
   async function handleUpload(fileList) {
-    const files = Array.from(fileList).slice(0, 6 - f.images.length);
+    const all = Array.from(fileList);
+    const valid = all.filter((file) => OK_TYPES.includes(file.type) && file.size <= MAX_UPLOAD);
+    const files = valid.slice(0, 6 - f.images.length);
+    if (valid.length < all.length) {
+      setError('Certaines images ont été ignorées — formats acceptés : JPG, PNG, WebP · 10 Mo max.');
+    } else {
+      setError('');
+    }
     if (!files.length) return;
     setUploading(true);
-    setError('');
     try {
       const fd = new FormData();
       files.forEach((file) => fd.append('images', file));
@@ -86,6 +96,23 @@ export default function ProductForm({ product, categories = [], onClose, onSaved
       setUploading(false);
     }
   }
+
+  // Gestion des images : principale (1re position), réordonner, supprimer.
+  const rmImage = (i) => set({ images: f.images.filter((_, idx) => idx !== i) });
+  const setMainImage = (i) => {
+    if (i === 0) return;
+    const imgs = [...f.images];
+    const [main] = imgs.splice(i, 1);
+    imgs.unshift(main);
+    set({ images: imgs });
+  };
+  const moveImage = (i, dir) => {
+    const j = i + dir;
+    if (j < 0 || j >= f.images.length) return;
+    const imgs = [...f.images];
+    [imgs[i], imgs[j]] = [imgs[j], imgs[i]];
+    set({ images: imgs });
+  };
 
   async function submit(e) {
     e.preventDefault();
@@ -241,28 +268,55 @@ export default function ProductForm({ product, categories = [], onClose, onSaved
         <label className="label dark:text-white/80">Photos (max 6)</label>
         <div className="flex flex-wrap gap-3">
           {f.images.map((src, i) => (
-            <div key={i} className="relative h-20 w-20 overflow-hidden rounded-xl ring-1 ring-line dark:ring-white/10">
+            <div key={i} className="group relative h-24 w-24 overflow-hidden rounded-xl ring-1 ring-line dark:ring-white/10">
               <img src={src} alt="" className="h-full w-full object-cover" />
+
+              {/* Badge image principale (1re position) */}
+              {i === 0 && (
+                <span className="absolute left-1 top-1 inline-flex items-center gap-0.5 rounded-full bg-accent px-1.5 py-0.5 text-[9px] font-bold text-white">
+                  <FiStar size={9} /> Principale
+                </span>
+              )}
+
+              {/* Supprimer */}
               <button
                 type="button"
-                onClick={() => set({ images: f.images.filter((_, idx) => idx !== i) })}
-                className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full bg-black/60 text-white"
+                onClick={() => rmImage(i)}
+                className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full bg-black/60 text-white transition hover:bg-danger"
                 aria-label="Supprimer la photo"
               >
                 <FiX size={12} />
               </button>
+
+              {/* Barre d'actions (au survol) : déplacer / définir principale */}
+              <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-0.5 bg-black/55 py-1 opacity-0 transition group-hover:opacity-100">
+                <button type="button" onClick={() => moveImage(i, -1)} disabled={i === 0} className="grid h-6 w-6 place-items-center rounded text-white transition hover:text-accent-400 disabled:opacity-30" aria-label="Déplacer à gauche">
+                  <FiChevronLeft size={14} />
+                </button>
+                {i !== 0 && (
+                  <button type="button" onClick={() => setMainImage(i)} className="grid h-6 w-6 place-items-center rounded text-white transition hover:text-accent-400" aria-label="Définir comme principale" title="Définir comme principale">
+                    <FiStar size={13} />
+                  </button>
+                )}
+                <button type="button" onClick={() => moveImage(i, 1)} disabled={i === f.images.length - 1} className="grid h-6 w-6 place-items-center rounded text-white transition hover:text-accent-400 disabled:opacity-30" aria-label="Déplacer à droite">
+                  <FiChevronRight size={14} />
+                </button>
+              </div>
             </div>
           ))}
           {f.images.length < 6 && (
             <label className={cn(
-              'grid h-20 w-20 cursor-pointer place-items-center rounded-xl border-2 border-dashed border-line text-center text-xs text-muted transition hover:border-accent hover:text-accent dark:border-white/15',
+              'grid h-24 w-24 cursor-pointer place-items-center rounded-xl border-2 border-dashed border-line text-center text-xs text-muted transition hover:border-accent hover:text-accent dark:border-white/15',
               uploading && 'pointer-events-none opacity-60'
             )}>
               {uploading ? '…' : <span className="flex flex-col items-center gap-1"><FiUploadCloud size={18} /> Ajouter</span>}
-              <input type="file" accept="image/*" multiple className="hidden" disabled={uploading} onChange={(e) => { handleUpload(e.target.files); e.target.value = ''; }} />
+              <input type="file" accept="image/jpeg,image/png,image/webp" multiple className="hidden" disabled={uploading} onChange={(e) => { handleUpload(e.target.files); e.target.value = ''; }} />
             </label>
           )}
         </div>
+        <p className="mt-2 text-xs text-muted">
+          La <strong>1re image</strong> est la principale. Survolez une photo pour la <strong>déplacer</strong> ou la <strong>définir comme principale</strong>. JPG/PNG/WebP · 10 Mo max — l'optimisation (carré, fond blanc, WebP) est automatique.
+        </p>
       </div>
 
       {/* Options / flags */}
