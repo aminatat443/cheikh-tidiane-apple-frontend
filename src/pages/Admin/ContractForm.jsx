@@ -67,7 +67,7 @@ export default function ContractForm({ onClose, onSaved }) {
   }
 
   async function createClientInline() {
-    if (!newClient.name.trim() || !newClient.email.trim()) return setError('Nom et email du client requis');
+    if (!newClient.name.trim() || (!newClient.email.trim() && !newClient.phone.trim())) return setError('Nom + email ou téléphone requis');
     setClientSaving(true);
     setError('');
     try {
@@ -131,8 +131,8 @@ export default function ContractForm({ onClose, onSaved }) {
             <p className="flex items-center gap-1.5 text-sm font-semibold dark:text-white"><FiUserPlus size={14} /> Nouveau client</p>
             <input className="input" placeholder="Nom complet *" value={newClient.name} onChange={(e) => setNewClient((c) => ({ ...c, name: e.target.value }))} />
             <div className="grid grid-cols-2 gap-2">
-              <input className="input" placeholder="Email *" value={newClient.email} onChange={(e) => setNewClient((c) => ({ ...c, email: e.target.value }))} />
-              <input className="input" placeholder="Téléphone" value={newClient.phone} onChange={(e) => setNewClient((c) => ({ ...c, phone: e.target.value }))} />
+              <input className="input" placeholder="Email (ou téléphone)" value={newClient.email} onChange={(e) => setNewClient((c) => ({ ...c, email: e.target.value }))} />
+              <input className="input" placeholder="Téléphone (ou email)" value={newClient.phone} onChange={(e) => setNewClient((c) => ({ ...c, phone: e.target.value }))} />
             </div>
             <div className="flex justify-end gap-2">
               <button type="button" onClick={() => setCreating(false)} className="btn-outline px-3 py-1.5 text-sm">Annuler</button>
@@ -235,14 +235,6 @@ export default function ContractForm({ onClose, onSaved }) {
         <IdCardScanner photos={{ front: kyc.frontUrl, back: kyc.backUrl }} onPhoto={onPhoto} onExtract={onExtract} />
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <div>
-            <label className="label dark:text-white/80">Prénom</label>
-            <input className="input" value={kyc.firstName} onChange={(e) => setKycField({ firstName: e.target.value })} placeholder="Prénom" />
-          </div>
-          <div>
-            <label className="label dark:text-white/80">Nom</label>
-            <input className="input" value={kyc.lastName} onChange={(e) => setKycField({ lastName: e.target.value })} placeholder="Nom" />
-          </div>
           <div>
             <label className="label dark:text-white/80">NIN</label>
             <input className="input" value={kyc.nin} onChange={(e) => setKycField({ nin: e.target.value })} placeholder="Numéro d'identification" />

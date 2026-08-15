@@ -81,6 +81,12 @@ export default function ProductDetails() {
   const lebalma = computeLebalma(activePrice, product);
   const specs = product.specs && typeof product.specs === 'object' ? Object.entries(product.specs) : [];
   const inStock = product.stock == null || product.stock > 0;
+  // Stock par couleur : si la couleur sélectionnée a un stock renseigné, la
+  // disponibilité dépend de CETTE couleur (et non du stock global uniquement).
+  const selColor = (product.colors || []).find((c) => (c.name || c) === activeColor);
+  const colorStock = selColor && typeof selColor.stock === 'number' ? selColor.stock : null;
+  const colorInStock = colorStock == null || colorStock > 0;
+  const canBuy = inStock && colorInStock;
   const related = (relatedData?.data || []).filter((p) => p.id !== Number(id)).slice(0, 12);
 
   const addToCart = () =>
@@ -297,23 +303,34 @@ export default function ProductDetails() {
               <div className="flex gap-2.5">
                 {product.colors.map((c) => {
                   const name = c.name || c;
+                  const soldOut = typeof c.stock === 'number' && c.stock <= 0;
                   return (
                     <button
                       key={name}
                       onClick={() => setColor(name)}
                       className={cn(
                         'grid h-9 w-9 place-items-center rounded-full ring-2 ring-offset-2 transition dark:ring-offset-primary-950',
-                        activeColor === name ? 'ring-accent' : 'ring-transparent hover:ring-line'
+                        activeColor === name ? 'ring-accent' : 'ring-transparent hover:ring-line',
+                        soldOut && 'opacity-40'
                       )}
                       style={{ background: c.hex || '#ccc' }}
-                      title={name}
-                      aria-label={name}
+                      title={soldOut ? `${name} (rupture)` : name}
+                      aria-label={soldOut ? `${name} (rupture)` : name}
                     >
                       {activeColor === name && <FiCheck className="text-white mix-blend-difference" size={14} />}
                     </button>
                   );
                 })}
               </div>
+              {/* Dispo de la couleur sélectionnée */}
+              {colorStock === 0 && (
+                <p className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-danger">
+                  <span className="h-1.5 w-1.5 rounded-full bg-danger" /> Rupture pour « {activeColor} »
+                </p>
+              )}
+              {colorStock != null && colorStock > 0 && colorStock <= 5 && (
+                <p className="mt-2 text-sm font-medium text-warning">Plus que {colorStock} en « {activeColor} »</p>
+              )}
             </div>
           )}
 
@@ -345,7 +362,7 @@ export default function ProductDetails() {
 
           {/* Actions */}
           <div className="mt-8 flex gap-3">
-            <button onClick={addToCart} disabled={!inStock} className="btn-dark flex-1">
+            <button onClick={addToCart} disabled={!canBuy} className="btn-dark flex-1">
               <FiShoppingBag /> {inStock ? 'Ajouter au panier' : 'Indisponible'}
             </button>
             <button
@@ -481,7 +498,7 @@ export default function ProductDetails() {
             <p className="truncate text-xs text-muted">{product.name}</p>
             <p className="text-lg font-extrabold tracking-tight dark:text-white">{formatPrice(activePrice)}</p>
           </div>
-          <button onClick={addToCart} disabled={!inStock} className="btn-dark ml-auto shrink-0">
+          <button onClick={addToCart} disabled={!canBuy} className="btn-dark ml-auto shrink-0">
             <FiShoppingBag /> {inStock ? 'Ajouter' : 'Indispo.'}
           </button>
         </div>

@@ -27,9 +27,11 @@ export default function ProductForm({ product, categories = [], onClose, onSaved
     slugTouched: Boolean(product?.slug),
     categoryId: product?.categoryId || product?.category?.id || '',
     description: product?.description || '',
-    price: product?.price ?? '',
-    oldPrice: product?.oldPrice ?? '',
+    // Le prix vient des capacités/configs. Prix promo (réduit) : reconstruit
+    // si le produit est en promo (oldPrice barré > price payé).
+    promoPrice: product?.oldPrice != null && Number(product?.oldPrice) > Number(product?.price ?? 0) ? (product?.price ?? '') : '',
     stock: product?.stock ?? 0,
+    condition: product?.condition || 'reconditionne',
     model: product?.model || '',
     variants:
       Array.isArray(product?.variants) && product.variants.length
@@ -37,7 +39,7 @@ export default function ProductForm({ product, categories = [], onClose, onSaved
         : [],
     colors:
       Array.isArray(product?.colors) && product.colors.length
-        ? product.colors.map((c) => ({ name: c.name || c, hex: c.hex || '#111827' }))
+        ? product.colors.map((c) => ({ name: c.name || c, hex: c.hex || '#111827', stock: c.stock ?? 0 }))
         : [],
     images: Array.isArray(product?.images) ? product.images.filter(Boolean) : [],
     isNew: !!product?.isNew,
@@ -58,6 +60,17 @@ export default function ProductForm({ product, categories = [], onClose, onSaved
   const set = (patch) => setF((prev) => ({ ...prev, ...patch }));
   const onName = (name) => set({ name, slug: f.slugTouched ? f.slug : slugify(name) });
 
+  // Champs adaptés à la catégorie : MacBook = « Configuration », sinon « Capacité ».
+  const catSlug = categories.find((c) => String(c.id) === String(f.categoryId))?.slug || '';
+  const isMac = catSlug === 'macbook';
+  const variantLabel = isMac ? 'Configuration' : 'Capacité';
+  const variantWord = isMac ? 'configuration' : 'capacité';
+  const variantPlaceholder = isMac ? 'M3 · 16 Go · 512 Go' : '128 Go';
+
+  // Stock par couleur : le stock global devient la somme des stocks couleurs.
+  const hasColors = f.colors.length > 0;
+  const colorsStockTotal = f.colors.reduce((s, c) => s + (Number(c.stock) || 0), 0);
+
   // Variantes
   const addVariant = () => set({ variants: [...f.variants, { storage: '', price: '' }] });
   const updVariant = (i, patch) =>
@@ -65,7 +78,7 @@ export default function ProductForm({ product, categories = [], onClose, onSaved
   const rmVariant = (i) => set({ variants: f.variants.filter((_, idx) => idx !== i) });
 
   // Couleurs
-  const addColor = () => set({ colors: [...f.colors, { name: '', hex: '#111827' }] });
+  const addColor = () => set({ colors: [...f.colors, { name: '', hex: '#111827', stock: 0 }] });
   const updColor = (i, patch) =>
     set({ colors: f.colors.map((c, idx) => (idx === i ? { ...c, ...patch } : c)) });
   const rmColor = (i) => set({ colors: f.colors.filter((_, idx) => idx !== i) });
@@ -118,14 +131,24 @@ export default function ProductForm({ product, categories = [], onClose, onSaved
     e.preventDefault();
     setError('');
     if (!f.name.trim()) return setError('Le nom est requis');
-    if (f.price === '' || Number(f.price) < 0) return setError('Le prix (FCFA) est requis');
 
     const cleanVariants = f.variants
       .filter((v) => v.storage && v.price !== '')
       .map((v) => ({ storage: v.storage.trim(), price: Number(v.price) }));
+    if (!cleanVariants.length) return setError(`Ajoutez au moins une ${variantWord} avec son prix.`);
+
+    // Le prix vient des capacités/configs ; le prix promo (s'il est plus bas) devient
+    // le prix affiché, la moins chère étant barrée.
+    const basePrice = Math.min(...cleanVariants.map((v) => v.price));
+    const promo = f.promoPrice === '' ? null : Number(f.promoPrice);
+    if (promo != null && promo >= basePrice) return setError('Le prix promo doit être inférieur au prix le plus bas.');
+    const onPromo = promo != null && promo > 0 && promo < basePrice;
+
     const cleanColors = f.colors
       .filter((c) => c.name.trim())
-      .map((c) => ({ name: c.name.trim(), hex: c.hex }));
+      .map((c) => ({ name: c.name.trim(), hex: c.hex, stock: Number(c.stock) || 0 }));
+    // Stock global = somme des stocks par couleur (si des couleurs sont définies).
+    const colorsStock = cleanColors.reduce((s, c) => s + c.stock, 0);
 
     const payload = {
       name: f.name.trim(),
@@ -133,15 +156,16 @@ export default function ProductForm({ product, categories = [], onClose, onSaved
       model: f.model.trim() || f.name.trim(),
       description: f.description.trim(),
       categoryId: f.categoryId ? Number(f.categoryId) : null,
-      price: cleanVariants.length ? Math.min(...cleanVariants.map((v) => v.price)) : Number(f.price),
-      oldPrice: f.oldPrice === '' ? null : Number(f.oldPrice),
-      stock: Number(f.stock) || 0,
+      price: onPromo ? promo : basePrice,
+      oldPrice: onPromo ? basePrice : null,
+      condition: f.condition,
+      stock: cleanColors.length ? colorsStock : Number(f.stock) || 0,
       storages: cleanVariants.map((v) => v.storage),
       variants: cleanVariants,
       colors: cleanColors,
       images: f.images,
       isNew: f.isNew,
-      isPromo: f.isPromo,
+      isPromo: onPromo ? true : f.isPromo,
       isFeatured: f.isFeatured,
       isTopSale: f.isTopSale,
       newAvailable: f.newAvailable,
@@ -203,42 +227,46 @@ export default function ProductForm({ product, categories = [], onClose, onSaved
         <textarea className="input min-h-20" value={f.description} onChange={(e) => set({ description: e.target.value })} />
       </div>
 
-      {/* Prix & stock */}
+      {/* Prix promo · stock · état (le prix normal vient des capacités/configs) */}
       <div className="grid gap-4 sm:grid-cols-3">
         <div>
-          <label className="label dark:text-white/80">Prix (FCFA) *</label>
-          <input type="number" className="input" value={f.price} onChange={(e) => set({ price: e.target.value })} placeholder="150000" />
+          <label className="label dark:text-white/80">Prix promo (FCFA)</label>
+          <input type="number" className="input" value={f.promoPrice} onChange={(e) => set({ promoPrice: e.target.value })} placeholder="Optionnel — prix réduit" />
         </div>
         <div>
-          <label className="label dark:text-white/80">Ancien prix (FCFA)</label>
-          <input type="number" className="input" value={f.oldPrice} onChange={(e) => set({ oldPrice: e.target.value })} />
+          <label className="label dark:text-white/80">Stock{hasColors ? ' (total)' : ''}</label>
+          <input type="number" className="input" value={hasColors ? colorsStockTotal : f.stock} onChange={(e) => set({ stock: e.target.value })} disabled={hasColors} />
+          {hasColors && <p className="mt-1 text-[11px] text-muted">Somme des stocks par couleur.</p>}
         </div>
         <div>
-          <label className="label dark:text-white/80">Stock</label>
-          <input type="number" className="input" value={f.stock} onChange={(e) => set({ stock: e.target.value })} />
+          <label className="label dark:text-white/80">État</label>
+          <select className="input" value={f.condition} onChange={(e) => set({ condition: e.target.value })}>
+            <option value="reconditionne">Reconditionné</option>
+            <option value="neuf">Neuf</option>
+          </select>
         </div>
       </div>
 
       {/* Variantes (capacité / prix) */}
       <div>
         <div className="mb-2 flex items-center justify-between">
-          <label className="label mb-0 dark:text-white/80">Capacités & prix</label>
+          <label className="label mb-0 dark:text-white/80">{variantLabel}s & prix *</label>
           <button type="button" onClick={addVariant} className="inline-flex items-center gap-1 text-sm font-semibold text-accent hover:underline">
             <FiPlus size={14} /> Ajouter
           </button>
         </div>
-        <p className="mb-2 text-xs text-muted">Le prix « à partir de » sera la capacité la moins chère.</p>
+        <p className="mb-2 text-xs text-muted">Le prix du produit vient d'ici : le prix affiché « à partir de » sera la {variantWord} la moins chère.</p>
         <div className="space-y-2">
           {f.variants.map((v, i) => (
             <div key={i} className="flex items-center gap-2">
-              <input className="input flex-1" placeholder="128 Go" value={v.storage} onChange={(e) => updVariant(i, { storage: e.target.value })} />
+              <input className="input flex-1" placeholder={variantPlaceholder} value={v.storage} onChange={(e) => updVariant(i, { storage: e.target.value })} />
               <input type="number" className="input w-36" placeholder="Prix" value={v.price} onChange={(e) => updVariant(i, { price: e.target.value })} />
               <button type="button" onClick={() => rmVariant(i)} className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-danger hover:bg-danger/10" aria-label="Retirer">
                 <FiTrash2 size={16} />
               </button>
             </div>
           ))}
-          {f.variants.length === 0 && <p className="text-xs text-muted">Aucune variante — le prix de base est utilisé.</p>}
+          {f.variants.length === 0 && <p className="text-xs text-muted">Ajoutez au moins une {variantWord} avec son prix (obligatoire).</p>}
         </div>
       </div>
 
@@ -255,11 +283,13 @@ export default function ProductForm({ product, categories = [], onClose, onSaved
             <div key={i} className="flex items-center gap-2">
               <input className="input flex-1" placeholder="Noir" value={c.name} onChange={(e) => updColor(i, { name: e.target.value })} />
               <input type="color" className="h-9 w-12 shrink-0 cursor-pointer rounded-lg border border-line bg-white dark:border-white/15" value={c.hex} onChange={(e) => updColor(i, { hex: e.target.value })} />
+              <input type="number" min="0" className="input w-24 shrink-0" placeholder="Stock" value={c.stock ?? 0} onChange={(e) => updColor(i, { stock: e.target.value })} aria-label="Stock de cette couleur" />
               <button type="button" onClick={() => rmColor(i)} className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-danger hover:bg-danger/10" aria-label="Retirer">
                 <FiTrash2 size={16} />
               </button>
             </div>
           ))}
+          {hasColors && <p className="text-xs text-muted">Chaque couleur a son propre stock. Le stock total du produit = somme des couleurs.</p>}
         </div>
       </div>
 
