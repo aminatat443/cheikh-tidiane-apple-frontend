@@ -72,6 +72,7 @@ Recherche & filtres en temps réel · Hero slider · Favoris & panier persistant
 | Ibrahima Bâ | `ibrahima@example.com` | ✅ | Contrat **terminé** ; peut souscrire à Lebalma |
 | Aïssatou Diop | `aissatou@example.com` | ✅ | Contrat **en défaut** |
 | Fatou Sarr | `fatou@example.com` | ❌ | Client **sans KYC** (souscription Lebalma bloquée) |
+| Fatou Sarr | `fatou@example.com` | ❌ | Client **sans KYC** (souscription Lebalma bloquée) |
 
 > 🔐 Identifiants de **développement uniquement** — à changer impérativement avant toute mise en production.
 > 💳 Le paiement fonctionne en **mode simulation** tant que les clés Wave / Orange Money ne sont pas configurées : le checkout redirige vers un simulateur (`/paiement/simulateur/:id`) qui confirme ou échoue le paiement.
